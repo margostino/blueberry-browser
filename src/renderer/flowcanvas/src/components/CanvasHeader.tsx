@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlowCanvas, FlowItem } from '../../../../types/flowcanvas';
 import { NoteDialog } from './NoteDialog';
+import ExportModal from './ExportModal';
 import { v4 as uuidv4 } from 'uuid';
 interface CanvasHeaderProps {
   canvas: FlowCanvas;
@@ -10,6 +11,7 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
   const [isEditingName, setIsEditingName] = useState(false);
   const [canvasName, setCanvasName] = useState(canvas.name);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const handleNameSave = () => {
     if (canvasName.trim() && canvasName !== canvas.name) {
       onCanvasChange({
@@ -98,7 +100,11 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
         >
           + Add Note
         </button>
-        <button className="canvas-action-btn" title="Export">
+        <button 
+          className="canvas-action-btn" 
+          title="Export"
+          onClick={() => setIsExportModalOpen(true)}
+        >
           Export
         </button>
       </div>
@@ -106,6 +112,11 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
         isOpen={isNoteDialogOpen}
         onClose={() => setIsNoteDialogOpen(false)}
         onSave={handleCreateNote}
+      />
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        canvas={canvas}
       />
     </div>
   );
