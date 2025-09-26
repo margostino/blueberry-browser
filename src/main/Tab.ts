@@ -1,14 +1,20 @@
-import { NativeImage, WebContents, WebContentsView } from "electron";
+import { WebContentsView } from "electron";
+import type { WebContents, NativeImage } from "electron";
+import { createLogger } from "../services/Logger";
+import { measureAsync, trackAction } from "../services/Telemetry";
+
+const logger = createLogger({ module: 'Tab' });
+
 export class Tab {
   private webContentsView: WebContentsView;
-  private _id: string;
-  private _title: string;
-  private _url: string;
-  private _isVisible: boolean = false;
+  private tabId: string;
+  private tabTitle: string;
+  private tabUrl: string;
+  private tabIsVisible: boolean = false;
   constructor(id: string, url: string = "https://margostino.com") {
-    this._id = id;
-    this._url = url;
-    this._title = "New Tab";
+    this.tabId = id;
+    this.tabUrl = url;
+    this.tabTitle = "New Tab";
     const isFlowCanvas = url.includes("flowcanvas");
     this.webContentsView = new WebContentsView({
       webPreferences: {
@@ -27,26 +33,26 @@ export class Tab {
   }
   private setupEventListeners(): void {
     this.webContentsView.webContents.on("page-title-updated", (_, title) => {
-      this._title = title;
+      this.tabTitle = title;
     });
     this.webContentsView.webContents.on("did-navigate", (_, url) => {
-      this._url = url;
+      this.tabUrl = url;
     });
     this.webContentsView.webContents.on("did-navigate-in-page", (_, url) => {
-      this._url = url;
+      this.tabUrl = url;
     });
   }
   get id(): string {
-    return this._id;
+    return this.tabId;
   }
   get title(): string {
-    return this._title;
+    return this.tabTitle;
   }
   get url(): string {
-    return this._url;
+    return this.tabUrl;
   }
   get isVisible(): boolean {
-    return this._isVisible;
+    return this.tabIsVisible;
   }
   get webContents(): WebContents {
     return this.webContentsView.webContents;
@@ -55,11 +61,11 @@ export class Tab {
     return this.webContentsView;
   }
   show(): void {
-    this._isVisible = true;
+    this.tabIsVisible = true;
     this.webContentsView.setVisible(true);
   }
   hide(): void {
-    this._isVisible = false;
+    this.tabIsVisible = false;
     this.webContentsView.setVisible(false);
   }
   async screenshot(): Promise<NativeImage> {
@@ -109,20 +115,45 @@ export class Tab {
         return result || '';
       }
     } catch (error) {
-      console.warn('Unable to extract page text:', error);
+      logger.warn('Unable to extract page text', { error: (error as Error).message, tabId: this.id });
       // Fallback: Return page info as context
       const title = this.webContentsView.webContents.getTitle();
       const url = this.webContentsView.webContents.getURL();
       return `Page: ${title}\nURL: ${url}`;
     }
   }
-  loadURL(url: string): Promise<void> {
-    this._url = url;
-    return this.webContentsView.webContents.loadURL(url);
+  async loadURL(url: string): Promise<void> {
+    this.tabUrl = url;
+    
+    const startTime = Date.now();
+    try {
+      await measureAsync(
+        'tab.loadURL',
+        () => this.webContentsView.webContents.loadURL(url),
+        { tabId: this.tabId, url }
+      );
+      
+      const loadTime = Date.now() - startTime;
+      logger.info(`Tab loaded successfully`, { 
+        tabId: this.tabId, 
+        url, 
+        loadTime 
+      });
+      
+      trackAction('load_url', 'tab', url, loadTime);
+    } catch (error) {
+      logger.error(`Failed to load URL`, error as Error, {
+        tabId: this.tabId,
+        url
+      });
+      throw error;
+    }
   }
   goBack(): void {
     if (this.webContentsView.webContents.navigationHistory.canGoBack()) {
       this.webContentsView.webContents.navigationHistory.goBack();
+      trackAction('navigate_back', 'tab', undefined, undefined, { tabId: this.tabId });
+      logger.debug('Navigated back', { tabId: this.tabId });
     }
   }
   goForward(): void {

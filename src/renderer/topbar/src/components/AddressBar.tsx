@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft, ArrowRight, RefreshCw, Loader2, PanelLeftClose, PanelLeft, Waves } from 'lucide-react'
 import { useBrowser } from '../contexts/BrowserContext'
 import { ToolBarButton } from '../components/ToolBarButton'
 import { Favicon } from '../components/Favicon'
 import { DarkModeToggle } from '../components/DarkModeToggle'
 import { cn } from '@common/lib/utils'
-export const AddressBar: React.FC = () => {
+export const AddressBar: React.FC = React.memo(() => {
     const { activeTab, navigateToUrl, goBack, goForward, reload, isLoading } = useBrowser()
     const [url, setUrl] = useState('')
     const [isEditing, setIsEditing] = useState(false)
@@ -16,7 +16,7 @@ export const AddressBar: React.FC = () => {
             setUrl(activeTab.url || '')
         }
     }, [activeTab, isEditing])
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault()
         if (!url.trim()) return
         let finalUrl = url.trim()
@@ -31,18 +31,20 @@ export const AddressBar: React.FC = () => {
         setIsEditing(false)
         setIsFocused(false)
             ; (document.activeElement as HTMLElement)?.blur()
-    }
-    const handleFocus = () => {
+    }, [url, navigateToUrl])
+    const handleFocus = useCallback(() => {
         setIsEditing(true)
         setIsFocused(true)
-    }
-    const handleBlur = () => {
+    }, [])
+    
+    const handleBlur = useCallback(() => {
         setIsEditing(false)
         setIsFocused(false)
         if (activeTab) {
             setUrl(activeTab.url || '')
         }
-    }
+    }, [activeTab])
+    
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             setIsEditing(false)
@@ -163,7 +165,7 @@ export const AddressBar: React.FC = () => {
                 </div>
             )}
             <div className="flex items-center gap-1 app-region-no-drag">
-                <div className="relative group">
+                                <div className="relative group">
                     <ToolBarButton
                         Icon={Waves}
                         onClick={() => {
@@ -172,10 +174,8 @@ export const AddressBar: React.FC = () => {
                             }
                         }}
                         className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        title={`FlowCanvas (${navigator.platform.includes('Mac') ? '⌘⇧F' : 'Ctrl+Shift+F'})`}
                     />
-                    <div className="absolute top-full mt-2 right-0 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                        FlowCanvas ({navigator.platform.includes('Mac') ? '⌘⇧F' : 'Ctrl+Shift+F'})
-                    </div>
                 </div>
                 <DarkModeToggle />
                 <ToolBarButton
@@ -186,4 +186,4 @@ export const AddressBar: React.FC = () => {
             </div>
         </>
     )
-}
+})

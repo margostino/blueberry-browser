@@ -1,6 +1,6 @@
 import { cn } from '@common/lib/utils'
 import { Plus, X } from 'lucide-react'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Favicon } from '../components/Favicon'
 import { TabBarButton } from '../components/TabBarButton'
 import { useBrowser } from '../contexts/BrowserContext'
@@ -13,7 +13,7 @@ interface TabItemProps {
     onClose: () => void
     onActivate: () => void
 }
-const TabItem: React.FC<TabItemProps> = ({
+const TabItem = React.memo<TabItemProps>(({
     title,
     favicon,
     isActive,
@@ -66,20 +66,22 @@ const TabItem: React.FC<TabItemProps> = ({
             </div>
         </div>
     )
-}
-export const TabBar: React.FC = () => {
+})
+export const TabBar: React.FC = React.memo(() => {
     const { tabs, createTab, closeTab, switchTab } = useBrowser()
-    const handleCreateTab = () => {
+    
+    const handleCreateTab = useCallback(() => {
         createTab('https://margostino.com')
-    }
-    const getFavicon = (url: string) => {
+    }, [createTab])
+    
+    const getFavicon = useCallback((url: string) => {
         try {
             const domain = new URL(url).hostname
             return `https://favicon.margostino.com/${domain}`
         } catch {
             return null
         }
-    }
+    }, [])
     return (
         <div className="flex-1 overflow-x-hidden flex items-center">
             {}
@@ -107,4 +109,4 @@ export const TabBar: React.FC = () => {
             </div>
         </div>
     )
-}
+})

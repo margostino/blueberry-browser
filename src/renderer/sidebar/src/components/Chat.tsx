@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
@@ -29,7 +29,7 @@ const useAutoScroll = (messages: Message[]) => {
     }, [messages.length])
     return scrollRef
 }
-const UserMessage: React.FC<{ content: string }> = ({ content }) => (
+const UserMessage: React.FC<{ content: string }> = React.memo(({ content }) => (
     <div className="relative max-w-[85%] ml-auto animate-fade-in">
         <div className="bg-muted dark:bg-muted/50 rounded-3xl px-6 py-4">
             <div className="text-foreground" style={{ whiteSpace: 'pre-wrap' }}>
@@ -37,7 +37,7 @@ const UserMessage: React.FC<{ content: string }> = ({ content }) => (
             </div>
         </div>
     </div>
-)
+))
 const StreamingText: React.FC<{ content: string }> = ({ content }) => {
     const [displayedContent, setDisplayedContent] = useState('')
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -101,7 +101,7 @@ const Markdown: React.FC<{ content: string }> = ({ content }) => (
         </ReactMarkdown>
     </div>
 )
-const AssistantMessage: React.FC<{ content: string; isStreaming?: boolean }> = ({
+const AssistantMessage: React.FC<{ content: string; isStreaming?: boolean }> = React.memo(({
     content,
     isStreaming
 }) => (
@@ -114,7 +114,7 @@ const AssistantMessage: React.FC<{ content: string; isStreaming?: boolean }> = (
             )}
         </div>
     </div>
-)
+))
 const LoadingIndicator: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false)
     useEffect(() => {
@@ -232,23 +232,27 @@ const ConversationTurnComponent: React.FC<{
         )}
     </div>
 )
-export const Chat: React.FC = () => {
+export const Chat: React.FC = React.memo(() => {
     const { messages, isLoading, sendMessage, clearChat } = useChat()
     const scrollRef = useAutoScroll(messages)
-    const conversationTurns: ConversationTurn[] = []
-    for (let i = 0; i < messages.length; i++) {
-        if (messages[i].role === 'user') {
-            const turn: ConversationTurn = { user: messages[i] }
-            if (messages[i + 1]?.role === 'assistant') {
-                turn.assistant = messages[i + 1]
-                i++ 
+    
+    const conversationTurns: ConversationTurn[] = useMemo(() => {
+        const turns: ConversationTurn[] = []
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].role === 'user') {
+                const turn: ConversationTurn = { user: messages[i] }
+                if (messages[i + 1]?.role === 'assistant') {
+                    turn.assistant = messages[i + 1]
+                    i++ 
+                }
+                turns.push(turn)
+            } else if (messages[i].role === 'assistant' &&
+                (i === 0 || messages[i - 1]?.role !== 'user')) {
+                turns.push({ assistant: messages[i] })
             }
-            conversationTurns.push(turn)
-        } else if (messages[i].role === 'assistant' &&
-            (i === 0 || messages[i - 1]?.role !== 'user')) {
-            conversationTurns.push({ assistant: messages[i] })
         }
-    }
+        return turns
+    }, [messages])
     const showLoadingAfterLastTurn = isLoading &&
         messages[messages.length - 1]?.role === 'user'
     return (
@@ -302,4 +306,4 @@ export const Chat: React.FC = () => {
             </div>
         </div>
     )
-}
+})

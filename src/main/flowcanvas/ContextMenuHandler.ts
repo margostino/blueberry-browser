@@ -1,6 +1,9 @@
 import { Menu, MenuItem, WebContents, clipboard } from "electron";
 import { FlowCanvasManager } from "./FlowCanvasManager";
 import { ScreenshotManager } from "./ScreenshotManager";
+import { createLogger } from "../../services/Logger";
+const logger = createLogger({ module: 'FlowCanvasContextMenu' });
+
 export class FlowCanvasContextMenuHandler {
   private flowCanvasManager: FlowCanvasManager;
   private screenshotManager: ScreenshotManager;
@@ -16,11 +19,11 @@ export class FlowCanvasContextMenuHandler {
           label: "Capture Full Page to FlowCanvas",
           accelerator: "CmdOrCtrl+Shift+S",
           click: async () => {
-            console.log("📸 Context menu: Capture Full Screenshot clicked");
+            logger.debug("Context menu: Capture Full Screenshot clicked");
             try {
               const image = await webContents.capturePage();
               const dataURL = image.toDataURL();
-              console.log("📸 Screenshot captured, size:", image.getSize());
+              logger.debug("Screenshot captured", { size: image.getSize() });
               const captureRequest = {
                 type: "screenshot" as const,
                 content: dataURL,
@@ -31,13 +34,13 @@ export class FlowCanvasContextMenuHandler {
               };
               const item =
                 await this.flowCanvasManager.captureItem(captureRequest);
-              console.log("✅ Screenshot captured successfully:", item.id);
+              logger.info("Screenshot captured successfully", { itemId: item.id });
               webContents.send("flowcanvas:item-added", {
                 success: true,
                 type: "screenshot",
               });
             } catch (error) {
-              console.error("❌ Failed to capture screenshot:", error);
+              logger.error("Failed to capture screenshot", error as Error);
             }
           },
         })
@@ -47,11 +50,11 @@ export class FlowCanvasContextMenuHandler {
           label: "Capture Area to FlowCanvas",
           accelerator: "CmdOrCtrl+Shift+A",
           click: async () => {
-            console.log("🎯 Context menu: Capture Area clicked");
+            logger.debug("🎯 Context menu: Capture Area clicked");
             try {
               await this.screenshotManager.startSelectionMode(webContents);
             } catch (error) {
-              console.error("❌ Failed to start selection mode:", error);
+              logger.error("❌ Failed to start selection mode:", error as Error);
             }
           },
         })
@@ -61,10 +64,9 @@ export class FlowCanvasContextMenuHandler {
           label: "Paste Screenshot from Clipboard",
           accelerator: "CmdOrCtrl+Shift+V",
           click: async () => {
-            console.log("📋 Context menu: Paste from Clipboard clicked");
+            logger.debug("📋 Context menu: Paste from Clipboard clicked");
             try {
-              const success =
-                await this.screenshotManager.captureFromClipboard();
+              const success = await this.screenshotManager.captureFromClipboard();
               if (success) {
                 webContents.send("flowcanvas:item-added", {
                   success: true,
@@ -72,10 +74,10 @@ export class FlowCanvasContextMenuHandler {
                   fromClipboard: true,
                 });
               } else {
-                console.log("📋 No image found in clipboard");
+                logger.debug("📋 No image found in clipboard");
               }
             } catch (error) {
-              console.error("❌ Failed to paste from clipboard:", error);
+              logger.error("❌ Failed to paste from clipboard:", error as Error);
             }
           },
         })
@@ -87,7 +89,7 @@ export class FlowCanvasContextMenuHandler {
             label: "Add to FlowCanvas",
             accelerator: "CmdOrCtrl+Shift+W",
             click: async () => {
-              console.log("🖱️ Context menu: Add to FlowCanvas clicked");
+              logger.debug("🖱️ Context menu: Add to FlowCanvas clicked");
               const captureRequest = {
                 type: "text" as const,
                 content: params.selectionText,
@@ -96,7 +98,7 @@ export class FlowCanvasContextMenuHandler {
                   title: webContents.getTitle(),
                 },
               };
-              console.log("📤 Sending capture request:", {
+              logger.debug("📤 Sending capture request:", {
                 type: captureRequest.type,
                 contentLength: captureRequest.content.length,
                 url: captureRequest.source.url,
@@ -104,13 +106,13 @@ export class FlowCanvasContextMenuHandler {
               try {
                 const item =
                   await this.flowCanvasManager.captureItem(captureRequest);
-                console.log("✅ Item captured successfully:", item.id);
+                logger.debug(`✅ Item captured successfully: ${item.id}`);
                 webContents.send("flowcanvas:item-added", {
                   success: true,
                   content: params.selectionText.substring(0, 50) + "...",
                 });
               } catch (error) {
-                console.error("❌ Failed to capture item:", error);
+                logger.error("❌ Failed to capture item:", error as Error);
               }
             },
           })
@@ -133,8 +135,8 @@ export class FlowCanvasContextMenuHandler {
           new MenuItem({
             label: "Add Image to FlowCanvas",
             click: async () => {
-              console.log("🖼️ Context menu: Add Image to FlowCanvas clicked");
-              console.log("Image URL:", params.srcURL);
+              logger.debug("🖼️ Context menu: Add Image to FlowCanvas clicked");
+              logger.debug(`Image URL: ${params.srcURL}`);
               const captureRequest = {
                 type: "image" as const,
                 content: params.srcURL,
@@ -146,13 +148,13 @@ export class FlowCanvasContextMenuHandler {
               try {
                 const item =
                   await this.flowCanvasManager.captureItem(captureRequest);
-                console.log("✅ Image captured successfully:", item.id);
+                logger.debug(`✅ Image captured successfully: ${item.id}`);
                 webContents.send("flowcanvas:item-added", {
                   success: true,
                   type: "image",
                 });
               } catch (error) {
-                console.error("❌ Failed to capture image:", error);
+                logger.error("❌ Failed to capture image:", error as Error);
               }
             },
           })

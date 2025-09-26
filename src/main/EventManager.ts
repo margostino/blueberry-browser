@@ -1,9 +1,19 @@
-import { ipcMain, WebContents } from "electron";
+import { ipcMain } from "electron";
+import type { WebContents } from "electron";
+
 import type { Window } from "./Window";
+import { createLogger } from "../services/Logger";
+import { SecurityValidator } from "../services/SecurityValidator";
+
+const logger = createLogger({ module: 'EventManager' });
+
 export class EventManager {
   private mainWindow: Window;
+  private securityValidator: SecurityValidator;
+
   constructor(mainWindow: Window) {
     this.mainWindow = mainWindow;
+    this.securityValidator = new SecurityValidator();
     this.setupEventHandlers();
   }
   private setupEventHandlers(): void {
@@ -15,7 +25,12 @@ export class EventManager {
   }
   private handleTabEvents(): void {
     ipcMain.handle("create-tab", (_, url?: string) => {
-      const newTab = this.mainWindow.createTab(url);
+      if (url) {
+        const sanitizedUrl = this.securityValidator.sanitizeInput(url);
+        const newTab = this.mainWindow.createTab(sanitizedUrl);
+        return { id: newTab.id, title: newTab.title, url: newTab.url };
+      }
+      const newTab = this.mainWindow.createTab();
       return { id: newTab.id, title: newTab.title, url: newTab.url };
     });
     ipcMain.handle("close-tab", (_, id: string) => {
@@ -34,14 +49,16 @@ export class EventManager {
       }));
     });
     ipcMain.handle("navigate-to", (_, url: string) => {
+      const sanitizedUrl = this.securityValidator.sanitizeInput(url);
       if (this.mainWindow.activeTab) {
-        this.mainWindow.activeTab.loadURL(url);
+        this.mainWindow.activeTab.loadURL(sanitizedUrl);
       }
     });
     ipcMain.handle("navigate-tab", async (_, tabId: string, url: string) => {
+      const sanitizedUrl = this.securityValidator.sanitizeInput(url);
       const tab = this.mainWindow.getTab(tabId);
       if (tab) {
-        await tab.loadURL(url);
+        await tab.loadURL(sanitizedUrl);
         return true;
       }
       return false;
@@ -137,7 +154,7 @@ export class EventManager {
         try {
           return await this.mainWindow.activeTab.getTabHtml();
         } catch (error) {
-          console.error("Error getting page content:", error);
+          logger.error("Error getting page content", error as Error);
           return null;
         }
       }
@@ -148,7 +165,7 @@ export class EventManager {
         try {
           return await this.mainWindow.activeTab.getTabText();
         } catch (error) {
-          console.error("Error getting page text:", error);
+          logger.error("Error getting page text", error as Error);
           return null;
         }
       }
@@ -167,7 +184,7 @@ export class EventManager {
     });
   }
   private handleDebugEvents(): void {
-    ipcMain.on("ping", () => console.log("pong"));
+    ipcMain.on("ping", () => logger.debug("pong"));
   }
   private broadcastDarkMode(sender: WebContents, isDarkMode: boolean): void {
     if (this.mainWindow.topBar.view.webContents !== sender) {

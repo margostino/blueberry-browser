@@ -1,14 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { FlowCanvasItem, FlowCanvas } from '../types/ipc';
 contextBridge.exposeInMainWorld('flowCanvasAPI', {
   createCanvas: () => ipcRenderer.invoke('flowcanvas:create'),
   loadCanvas: (canvasId: string) => ipcRenderer.invoke('flowcanvas:load', canvasId),
-  saveCanvas: (canvas: any) => ipcRenderer.invoke('flowcanvas:save', canvas),
+  saveCanvas: (canvas: FlowCanvas) => ipcRenderer.invoke('flowcanvas:save', canvas),
   getActiveCanvas: () => ipcRenderer.invoke('flowcanvas:get-active'),
-  captureItem: (request: any) => ipcRenderer.invoke('flowcanvas:capture-item', request),
-  updateItem: (item: any) => ipcRenderer.invoke('flowcanvas:update-item', item),
+  captureItem: (request: Partial<FlowCanvasItem>) => ipcRenderer.invoke('flowcanvas:capture-item', request),
+  updateItem: (item: FlowCanvasItem) => ipcRenderer.invoke('flowcanvas:update-item', item),
   deleteItem: (itemId: string) => ipcRenderer.invoke('flowcanvas:delete-item', itemId),
   openCanvas: () => ipcRenderer.invoke('flowcanvas:open'),
-  on: (channel: string, callback: Function) => {
+  on: (channel: string, callback: (...args: unknown[]) => void) => {
     const validChannels = [
       'flowcanvas:item-captured',
       'flowcanvas:canvas-updated',
@@ -18,12 +19,12 @@ contextBridge.exposeInMainWorld('flowCanvasAPI', {
       ipcRenderer.on(channel, (_, ...args) => callback(...args));
     }
   },
-  removeListener: (channel: string, callback: Function) => {
-    ipcRenderer.removeListener(channel, callback as any);
+  removeListener: (channel: string, callback: (...args: unknown[]) => void) => {
+    ipcRenderer.removeListener(channel, callback);
   }
 });
 contextBridge.exposeInMainWorld('electronAPI', {
-  invoke: (channel: string, ...args: any[]): Promise<any> | undefined => {
+  invoke: (channel: string, ...args: unknown[]): Promise<unknown> | undefined => {
     const validChannels = [
       'flowcanvas:create',
       'flowcanvas:load',
@@ -39,7 +40,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
     return undefined;
   },
-  on: (channel: string, callback: Function) => {
+  on: (channel: string, callback: (...args: unknown[]) => void) => {
     const validChannels = [
       'flowcanvas:item-captured',
       'flowcanvas:canvas-updated',
@@ -53,13 +54,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       });
     }
   },
-  removeListener: (channel: string, callback: Function) => {
-    ipcRenderer.removeListener(channel, callback as any);
+  removeListener: (channel: string, callback: (...args: unknown[]) => void) => {
+    ipcRenderer.removeListener(channel, callback);
   }
 });
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {
-    on: (channel: string, callback: Function) => {
+    on: (channel: string, callback: (...args: unknown[]) => void) => {
       const validChannels = ['flowcanvas:item-captured', 'flowcanvas:canvas-updated'];
       if (validChannels.includes(channel)) {
         console.log(`[Preload/electron] Setting up listener for ${channel}`);

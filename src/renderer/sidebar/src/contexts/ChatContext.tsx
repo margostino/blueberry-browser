@@ -31,12 +31,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
                 const storedMessages = await window.sidebarAPI.getMessages()
                 if (storedMessages && storedMessages.length > 0) {
-                    const convertedMessages = storedMessages.map((msg: any, index: number) => ({
+                    const convertedMessages = storedMessages.map((msg: Message, index: number) => ({
                         id: `msg-${index}`,
                         role: msg.role,
                         content: typeof msg.content === 'string' 
                             ? msg.content 
-                            : msg.content.find((p: any) => p.type === 'text')?.text || '',
+                            : msg.content,
                         timestamp: Date.now(),
                         isStreaming: false
                     }))

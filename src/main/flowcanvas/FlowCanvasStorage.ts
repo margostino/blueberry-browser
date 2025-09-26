@@ -1,4 +1,7 @@
 import { FlowCanvas } from "../../types/flowcanvas";
+import { createLogger } from "../../services/Logger";
+
+const logger = createLogger({ module: 'FlowCanvasStorage' });
 export class FlowCanvasStorage {
   private canvases: Map<string, FlowCanvas> = new Map();
   async saveCanvas(canvas: FlowCanvas): Promise<boolean> {
@@ -6,7 +9,7 @@ export class FlowCanvasStorage {
       this.canvases.set(canvas.id, { ...canvas });
       return true;
     } catch (error) {
-      console.error("Failed to save canvas:", error);
+      logger.error("Failed to save canvas", error as Error);
       return false;
     }
   }

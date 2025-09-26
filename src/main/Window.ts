@@ -4,35 +4,41 @@ import { SideBar } from "./SideBar";
 import { Tab } from "./Tab";
 import { TopBar } from "./TopBar";
 import { FlowCanvasManager } from "./flowcanvas/FlowCanvasManager";
+import { createLogger } from "../services/Logger";
+import { trackAction } from "../services/Telemetry";
+import { config } from "../config/Config";
+const logger = createLogger({ module: 'Window' });
+
 export class Window {
-  private _baseWindow: BaseWindow;
+  private baseWindowInstance: BaseWindow;
   private tabsMap: Map<string, Tab> = new Map();
   private activeTabId: string | null = null;
   private tabCounter: number = 0;
-  private _topBar: TopBar;
-  private _sideBar: SideBar;
+  private topBarInstance: TopBar;
+  private sideBarInstance: SideBar;
   private flowCanvasManager: FlowCanvasManager;
   constructor(flowCanvasManager: FlowCanvasManager) {
     this.flowCanvasManager = flowCanvasManager;
-    this._baseWindow = new BaseWindow({
-      width: 1000,
-      height: 800,
+    const windowConfig = config.get('window');
+    this.baseWindowInstance = new BaseWindow({
+      width: windowConfig.defaultWidth,
+      height: windowConfig.defaultHeight,
       show: true,
-      autoHideMenuBar: false,
-      titleBarStyle: "hidden",
+      autoHideMenuBar: windowConfig.autoHideMenuBar,
+      titleBarStyle: windowConfig.titleBarStyle,
       ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
       trafficLightPosition: { x: 15, y: 13 },
     });
-    this._baseWindow.setMinimumSize(1000, 800);
-    this._topBar = new TopBar(this._baseWindow);
-    this._sideBar = new SideBar(this._baseWindow);
-    this._sideBar.client.setWindow(this);
+    this.baseWindowInstance.setMinimumSize(windowConfig.minWidth, windowConfig.minHeight);
+    this.topBarInstance = new TopBar(this.baseWindowInstance);
+    this.sideBarInstance = new SideBar(this.baseWindowInstance);
+    this.sideBarInstance.client.setWindow(this);
     this.createTab();
-    this._baseWindow.on("resize", () => {
+    this.baseWindowInstance.on("resize", () => {
       this.updateTabBounds();
-      this._topBar.updateBounds();
-      this._sideBar.updateBounds();
-      const bounds = this._baseWindow.getBounds();
+      this.topBarInstance.updateBounds();
+      this.sideBarInstance.updateBounds();
+      const bounds = this.baseWindowInstance.getBounds();
       if (this.activeTab) {
         this.activeTab.webContents.send("window-resized", {
           width: bounds.width,
@@ -49,13 +55,13 @@ export class Window {
     this.setupEventListeners();
   }
   private setupEventListeners(): void {
-    this._baseWindow.on("closed", () => {
+    this.baseWindowInstance.on("closed", () => {
       this.tabsMap.forEach((tab) => tab.destroy());
       this.tabsMap.clear();
     });
   }
   get window(): BaseWindow {
-    return this._baseWindow;
+    return this.baseWindowInstance;
   }
   get activeTab(): Tab | null {
     if (this.activeTabId) {
@@ -77,13 +83,13 @@ export class Window {
       if (process.env.NODE_ENV === "development") {
         const vitePort = process.env.VITE_DEV_SERVER_PORT || "5173";
         flowCanvasPath = `http://localhost:${vitePort}/flowcanvas/index.html`;
-        console.log(`🌊 FlowCanvas: Loading from ${flowCanvasPath}`);
+        logger.debug(`FlowCanvas: Loading from ${flowCanvasPath}`);
       } else {
         flowCanvasPath = `file://${path.join(__dirname, "../renderer/flowcanvas/index.html")}`;
       }
       const tab = new Tab(tabId, flowCanvasPath);
-      this._baseWindow.contentView.addChildView(tab.view);
-      const bounds = this._baseWindow.getBounds();
+      this.baseWindowInstance.contentView.addChildView(tab.view);
+      const bounds = this.baseWindowInstance.getBounds();
       tab.view.setBounds({
         x: 0,
         y: 88,
@@ -100,9 +106,9 @@ export class Window {
     }
     const tab = new Tab(tabId, url);
     this.flowCanvasManager.registerWebContents(tab.webContents);
-    console.log(`📎 FlowCanvas context menu registered for tab ${tabId}`);
-    this._baseWindow.contentView.addChildView(tab.view);
-    const bounds = this._baseWindow.getBounds();
+    logger.debug(`FlowCanvas context menu registered for tab ${tabId}`);
+    this.baseWindowInstance.contentView.addChildView(tab.view);
+    const bounds = this.baseWindowInstance.getBounds();
     tab.view.setBounds({
       x: 0,
       y: 88, 
@@ -115,16 +121,30 @@ export class Window {
     } else {
       tab.hide();
     }
+    
+    trackAction('create_tab', 'window', url || 'new', undefined, { 
+      tabId, 
+      tabCount: this.tabsMap.size 
+    });
+    logger.info('Tab created', { tabId, url, tabCount: this.tabsMap.size });
+    
     return tab;
   }
   closeTab(tabId: string): boolean {
     const tab = this.tabsMap.get(tabId);
     if (!tab) {
+      logger.warn('Attempted to close non-existent tab', { tabId });
       return false;
     }
-    this._baseWindow.contentView.removeChildView(tab.view);
+    this.baseWindowInstance.contentView.removeChildView(tab.view);
     tab.destroy();
     this.tabsMap.delete(tabId);
+    
+    trackAction('close_tab', 'window', undefined, undefined, { 
+      tabId, 
+      remainingTabs: this.tabsMap.size 
+    });
+    logger.info('Tab closed', { tabId, remainingTabs: this.tabsMap.size });
     if (this.activeTabId === tabId) {
       this.activeTabId = null;
       const remainingTabs = Array.from(this.tabsMap.keys());
@@ -133,7 +153,7 @@ export class Window {
       }
     }
     if (this.tabsMap.size === 0) {
-      this._baseWindow.close();
+      this.baseWindowInstance.close();
     }
     return true;
   }
@@ -150,38 +170,38 @@ export class Window {
     }
     tab.show();
     this.activeTabId = tabId;
-    this._baseWindow.setTitle(tab.title || "Blueberry Browser");
+    this.baseWindowInstance.setTitle(tab.title || "Blueberry Browser");
     return true;
   }
-  getTab(tabId: string): Tab | null {
-    return this.tabsMap.get(tabId) || null;
+  getTab(tabId: string): Tab | undefined {
+    return this.tabsMap.get(tabId);
   }
   show(): void {
-    this._baseWindow.show();
+    this.baseWindowInstance.show();
   }
   hide(): void {
-    this._baseWindow.hide();
+    this.baseWindowInstance.hide();
   }
   close(): void {
-    this._baseWindow.close();
+    this.baseWindowInstance.close();
   }
   focus(): void {
-    this._baseWindow.focus();
+    this.baseWindowInstance.focus();
   }
   minimize(): void {
-    this._baseWindow.minimize();
+    this.baseWindowInstance.minimize();
   }
   maximize(): void {
-    this._baseWindow.maximize();
+    this.baseWindowInstance.maximize();
   }
   unmaximize(): void {
-    this._baseWindow.unmaximize();
+    this.baseWindowInstance.unmaximize();
   }
   isMaximized(): boolean {
-    return this._baseWindow.isMaximized();
+    return this.baseWindowInstance.isMaximized();
   }
   setTitle(title: string): void {
-    this._baseWindow.setTitle(title);
+    this.baseWindowInstance.setTitle(title);
   }
   setBounds(bounds: {
     x?: number;
@@ -189,14 +209,14 @@ export class Window {
     width?: number;
     height?: number;
   }): void {
-    this._baseWindow.setBounds(bounds);
+    this.baseWindowInstance.setBounds(bounds);
   }
   getBounds(): { x: number; y: number; width: number; height: number } {
-    return this._baseWindow.getBounds();
+    return this.baseWindowInstance.getBounds();
   }
   private updateTabBounds(): void {
-    const bounds = this._baseWindow.getBounds();
-    const sidebarWidth = this._sideBar.getIsVisible() ? 400 : 0;
+    const bounds = this.baseWindowInstance.getBounds();
+    const sidebarWidth = this.sideBarInstance.getIsVisible() ? 400 : 0;
     this.tabsMap.forEach((tab) => {
       tab.view.setBounds({
         x: 0,
@@ -208,18 +228,18 @@ export class Window {
   }
   updateAllBounds(): void {
     this.updateTabBounds();
-    this._sideBar.updateBounds();
+    this.sideBarInstance.updateBounds();
   }
   get sidebar(): SideBar {
-    return this._sideBar;
+    return this.sideBarInstance;
   }
   get topBar(): TopBar {
-    return this._topBar;
+    return this.topBarInstance;
   }
   get tabs(): Tab[] {
     return Array.from(this.tabsMap.values());
   }
   get baseWindow(): BaseWindow {
-    return this._baseWindow;
+    return this.baseWindowInstance;
   }
 }

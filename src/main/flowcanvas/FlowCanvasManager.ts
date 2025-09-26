@@ -1,8 +1,12 @@
-import { BrowserWindow, WebContents, ipcMain } from "electron";
+import { ipcMain, BrowserWindow, webContents } from "electron";
+import type { WebContents } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { CaptureRequest, FlowCanvas, FlowItem } from "../../types/flowcanvas";
 import { FlowCanvasContextMenuHandler } from "./ContextMenuHandler";
 import { FlowCanvasStorage } from "./FlowCanvasStorage";
+import { createLogger } from "../../services/Logger";
+const logger = createLogger({ module: 'FlowCanvasManager' });
+
 export class FlowCanvasManager {
   private storage: FlowCanvasStorage;
   private activeCanvas: FlowCanvas | null = null;
@@ -86,9 +90,10 @@ export class FlowCanvasManager {
       : null;
   }
   public async captureItem(request: CaptureRequest): Promise<FlowItem> {
-    console.log(
-      `📥 FlowCanvas: Capturing ${request.type} from ${request.source.title}`
-    );
+    logger.info(`Capturing ${request.type}`, { 
+      source: request.source.title,
+      url: request.source.url 
+    });
     let dimensions = { width: 280, height: 150 };
     if (request.type === "image") {
       dimensions = { width: 320, height: 240 };
@@ -119,15 +124,15 @@ export class FlowCanvasManager {
     if (this.activeCanvas) {
       this.activeCanvas.items.push(item);
       await this.saveCanvas(this.activeCanvas);
-      console.log(
-        `✅ FlowCanvas: Item captured, total items: ${this.activeCanvas.items.length}`
-      );
-      const { webContents } = require("electron");
+      logger.info('Item captured successfully', { 
+        itemId: item.id,
+        totalItems: this.activeCanvas.items.length 
+      });
       webContents.getAllWebContents().forEach((contents) => {
         const url = contents.getURL();
-        console.log(`🔍 Checking webContents URL: ${url}`);
+        logger.trace(`Checking webContents URL: ${url}`);
         if (url.includes("flowcanvas")) {
-          console.log(`📬 Sending item to FlowCanvas tab: ${url}`);
+          logger.debug(`Sending item to FlowCanvas tab`, { url, itemId: item.id });
           contents.send("flowcanvas:item-captured", item);
         }
       });

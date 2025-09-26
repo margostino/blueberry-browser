@@ -14,7 +14,7 @@ declare global {
       removeListener: (channel: string, callback: Function) => void;
     };
     electronAPI: {
-      invoke: (channel: string, ...args: any[]) => Promise<any>;
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
       on: (channel: string, callback: Function) => void;
       removeListener: (channel: string, callback: Function) => void;
     };

@@ -5,6 +5,9 @@ import * as dotenv from "dotenv";
 import { WebContents } from "electron";
 import { join } from "path";
 import type { Window } from "./Window";
+import { createLogger } from "../services/Logger";
+import { ErrorHandler, APIError } from "../services/ErrorHandler";
+import { config } from "../config/Config";
 dotenv.config({ path: join(__dirname, "../../.env") });
 interface ChatRequest {
   message: string;
@@ -20,7 +23,9 @@ const DEFAULT_MODELS: Record<LLMProvider, string> = {
   anthropic: "claude-3-5-sonnet-20241022",
 };
 const MAX_CONTEXT_LENGTH = 4000;
-const DEFAULT_TEMPERATURE = 0.7;
+const DEFAULT_TEMPERATURE = config.get('ai').temperature;
+const logger = createLogger({ module: 'LLMClient' });
+
 export class LLMClient {
   private readonly webContents: WebContents;
   private window: Window | null = null;
@@ -39,12 +44,10 @@ export class LLMClient {
     this.window = window;
   }
   private getProvider(): LLMProvider {
-    const provider = process.env.LLM_PROVIDER?.toLowerCase();
-    if (provider === "anthropic") return "anthropic";
-    return "openai";
+    return config.get('ai').provider;
   }
   private getModelName(): string {
-    return process.env.LLM_MODEL || DEFAULT_MODELS[this.provider];
+    return config.get('ai').model || DEFAULT_MODELS[this.provider];
   }
   private initializeModel(): LanguageModel | null {
     const apiKey = this.getApiKey();
@@ -61,23 +64,21 @@ export class LLMClient {
   private getApiKey(): string | undefined {
     switch (this.provider) {
       case "anthropic":
-        return process.env.ANTHROPIC_API_KEY;
+        return config.getAnthropicKey();
       case "openai":
-        return process.env.OPENAI_API_KEY;
+        return config.getOpenAIKey();
       default:
         return undefined;
     }
   }
   private logInitializationStatus(): void {
     if (this.model) {
-      console.log(
-        `✅ LLM Client initialized with ${this.provider} provider using model: ${this.modelName}`
-      );
+      logger.info(`LLM Client initialized with ${this.provider} provider using model: ${this.modelName}`);
     } else {
       const keyName =
         this.provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY";
-      console.error(
-        `❌ LLM Client initialization failed: ${keyName} not found in environment variables.\n` +
+      logger.error(
+        `LLM Client initialization failed: ${keyName} not found in environment variables. ` +
           `Please add your API key to the .env file in the project root.`
       );
     }
@@ -92,7 +93,12 @@ export class LLMClient {
             const image = await activeTab.screenshot();
             screenshot = image.toDataURL();
           } catch (error) {
-            console.error("Failed to capture screenshot:", error);
+            const appError = ErrorHandler.handle(error, {
+              module: 'LLMClient',
+              operation: 'captureScreenshot',
+              tabId: activeTab.id
+            });
+            logger.error("Failed to capture screenshot", appError);
           }
         }
       }
@@ -123,7 +129,7 @@ export class LLMClient {
       const messages = await this.prepareMessagesWithContext(request);
       await this.streamResponse(messages, request.messageId);
     } catch (error) {
-      console.error("Error in LLM request:", error);
+      logger.error("Error in LLM request", error as Error, { messageId: request.messageId });
       this.handleStreamError(error, request.messageId);
     }
   }
@@ -149,7 +155,7 @@ export class LLMClient {
         try {
           pageText = await activeTab.getTabText();
         } catch (error) {
-          console.error("Failed to get page text:", error);
+          logger.error("Failed to get page text", error as Error);
         }
       }
     }
@@ -190,19 +196,39 @@ export class LLMClient {
     messageId: string
   ): Promise<void> {
     if (!this.model) {
-      throw new Error("Model not initialized");
+      throw new APIError(
+        "Model not initialized",
+        undefined,
+        undefined,
+        { module: 'LLMClient', operation: 'streamResponse' }
+      );
     }
+    
+    const context = {
+      module: 'LLMClient',
+      operation: 'streamResponse',
+      metadata: { messageId, provider: this.provider }
+    };
+
+    const model = this.model;
     try {
-      const result = await streamText({
-        model: this.model,
-        messages,
-        temperature: DEFAULT_TEMPERATURE,
-        maxRetries: 3,
-        abortSignal: undefined,
-      });
+      const result = await ErrorHandler.withRetry(
+        async () => streamText({
+          model,
+          messages,
+          temperature: DEFAULT_TEMPERATURE,
+          maxRetries: 3,
+          abortSignal: undefined,
+        }),
+        context,
+        3
+      );
+      
       await this.processStream(result.textStream, messageId);
     } catch (error) {
-      throw error;
+      const appError = ErrorHandler.handle(error, context);
+      logger.error("Failed to stream response", appError);
+      throw appError;
     }
   }
   private async processStream(
@@ -239,7 +265,7 @@ export class LLMClient {
     });
   }
   private handleStreamError(error: unknown, messageId: string): void {
-    console.error("Error streaming from LLM:", error);
+    logger.error("Error streaming from LLM", error as Error, { messageId });
     const errorMessage = this.getErrorMessage(error);
     this.sendErrorMessage(messageId, errorMessage);
   }

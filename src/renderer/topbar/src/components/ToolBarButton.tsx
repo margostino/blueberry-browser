@@ -8,6 +8,7 @@ interface ToolBarButtonProps {
     onClick?: () => void;
     children?: React.ReactNode;
     className?: string;
+    title?: string;
 }
 export const ToolBarButton: React.FC<ToolBarButtonProps> = ({
     Icon,
@@ -16,6 +17,7 @@ export const ToolBarButton: React.FC<ToolBarButtonProps> = ({
     onClick,
     children,
     className,
+    title,
 }) => {
     return (
         <div
@@ -29,6 +31,7 @@ export const ToolBarButton: React.FC<ToolBarButtonProps> = ({
             )}
             onClick={active ? onClick : undefined}
             tabIndex={-1}
+            title={title}
         >
             {children || (Icon && <Icon className="size-4.5" />)}
         </div>

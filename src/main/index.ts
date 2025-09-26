@@ -4,6 +4,9 @@ import { EventManager } from "./EventManager";
 import { FlowCanvasManager } from "./flowcanvas/FlowCanvasManager";
 import { AppMenu } from "./Menu";
 import { Window } from "./Window";
+import { createLogger } from "../services/Logger";
+
+const logger = createLogger({ module: 'main' });
 let mainWindow: Window | null = null;
 let eventManager: EventManager | null = null;
 let menu: AppMenu | null = null;
@@ -16,8 +19,10 @@ const createWindow = (): Window => {
   return window;
 };
 app.whenReady().then(() => {
+  logger.startTimer('app-startup');
   electronApp.setAppUserModelId("com.electron");
   mainWindow = createWindow();
+  logger.endTimer('app-startup', 'Application startup complete');
   const shortcut =
     process.platform === "darwin" ? "Cmd+Shift+F" : "Ctrl+Shift+F";
   const registered = globalShortcut.register(shortcut, () => {
@@ -37,9 +42,9 @@ app.whenReady().then(() => {
     }
   });
   if (!registered) {
-    console.warn(`⚠️  Failed to register global shortcut: ${shortcut}`);
+    logger.warn(`Failed to register global shortcut: ${shortcut}`);
   } else {
-    console.log(`✅ FlowCanvas keyboard shortcut registered: ${shortcut}`);
+    logger.info(`FlowCanvas keyboard shortcut registered: ${shortcut}`);
   }
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
