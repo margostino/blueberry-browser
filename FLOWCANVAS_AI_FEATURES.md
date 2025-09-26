@@ -1,6 +1,7 @@
 # 🤖 FlowCanvas AI Integration - Synthesis & Intelligence Layer
 
 ## Overview
+
 Transform your FlowCanvas from a collection of information into actionable insights, summaries, and new understanding through AI-powered synthesis.
 
 ---
@@ -8,6 +9,7 @@ Transform your FlowCanvas from a collection of information into actionable insig
 ## 🎯 Core AI Actions on Canvas
 
 ### 1. **Quick Actions Menu** (Right-click on canvas or selection)
+
 When user selects one or more items, show AI-powered options:
 
 ```typescript
@@ -73,7 +75,9 @@ const quickActions: AIQuickAction[] = [
 ### Research & Academic
 
 #### **"Tell me the story"**
+
 Select multiple items → AI creates a coherent narrative connecting all pieces.
+
 ```javascript
 // Example prompt construction
 const prompt = `
@@ -90,7 +94,9 @@ Create a coherent narrative that:
 ```
 
 #### **"Find the consensus"**
+
 Identifies agreements and disagreements across sources.
+
 ```javascript
 // Highlights items in different colors:
 // 🟢 Green: Consensus points
@@ -100,12 +106,15 @@ Identifies agreements and disagreements across sources.
 ```
 
 #### **"Generate bibliography"**
+
 Creates properly formatted citations (APA, MLA, Chicago) from all sources.
 
 ### Decision Making
 
 #### **"Compare options"**
+
 Select product/service snippets → Generate comparison table.
+
 ```typescript
 interface ComparisonResult {
   criteria: string[];
@@ -121,31 +130,39 @@ interface ComparisonResult {
 ```
 
 #### **"SWOT Analysis"**
+
 Transform research into Strengths, Weaknesses, Opportunities, Threats.
 
 #### **"Decision Matrix"**
+
 Create weighted decision matrix from scattered information.
 
 ### Learning & Understanding
 
 #### **"Explain Like I'm Five"**
+
 Simplify complex information on canvas.
 
 #### **"Create Study Guide"**
+
 Transform research into Q&A format, flashcards, or outline.
 
 #### **"Concept Map"**
+
 AI arranges items into hierarchical concept map with relationships.
 
 ### Content Creation
 
 #### **"Draft Article"**
+
 Transform canvas into blog post/article draft.
 
 #### **"Create Presentation"**
+
 Generate slide outline from canvas content.
 
 #### **"Tweet Thread"**
+
 Convert insights into social media thread.
 
 ---
@@ -153,6 +170,7 @@ Convert insights into social media thread.
 ## 💡 Smart Canvas Features
 
 ### 1. **AI Clustering** (Auto-organize)
+
 ```typescript
 async function autoCluster(items: FlowItem[]): Promise<ClusterGroup[]> {
   // Use embeddings to find semantic similarity
@@ -170,6 +188,7 @@ async function autoCluster(items: FlowItem[]): Promise<ClusterGroup[]> {
 ```
 
 ### 2. **AI Lasso** (Draw to select → AI understands intent)
+
 ```typescript
 // User draws rough circle around items
 // AI understands semantic intent
@@ -181,7 +200,9 @@ async function autoCluster(items: FlowItem[]): Promise<ClusterGroup[]> {
 ```
 
 ### 3. **Living Summaries**
+
 AI-generated summary cards that update as you add more items.
+
 ```typescript
 interface LiveSummary extends FlowItem {
   type: 'ai-summary';
@@ -193,7 +214,9 @@ interface LiveSummary extends FlowItem {
 ```
 
 ### 4. **Contradiction Detection**
+
 Automatic highlighting when AI detects conflicting information.
+
 ```typescript
 interface Contradiction {
   items: [FlowItem, FlowItem];
@@ -204,7 +227,9 @@ interface Contradiction {
 ```
 
 ### 5. **Smart Paths**
+
 AI suggests reading order through items.
+
 ```typescript
 interface ReadingPath {
   title: string; // "Beginner to Expert"
@@ -220,6 +245,7 @@ interface ReadingPath {
 ## 🎨 UI/UX Patterns
 
 ### Floating AI Assistant
+
 ```
 ┌────────────────────────────────────────┐
 │  FlowCanvas                           │
@@ -237,6 +263,7 @@ interface ReadingPath {
 ```
 
 ### AI Command Bar (Cmd+K style)
+
 ```
 Press '/' to invoke AI:
 ┌─────────────────────────────────┐
@@ -248,7 +275,9 @@ Press '/' to invoke AI:
 ```
 
 ### Inline AI Responses
+
 AI responses appear as special cards on canvas:
+
 ```typescript
 interface AIResponseCard extends FlowItem {
   type: 'ai-response';
@@ -268,6 +297,7 @@ interface AIResponseCard extends FlowItem {
 ## 🔧 Technical Implementation
 
 ### Backend AI Service
+
 ```typescript
 // src/main/flowcanvas/AIService.ts
 export class FlowCanvasAI {
@@ -310,6 +340,7 @@ export class FlowCanvasAI {
 ```
 
 ### Frontend Integration
+
 ```typescript
 // src/renderer/flowcanvas/hooks/useAI.ts
 export function useAI() {
@@ -351,6 +382,7 @@ export function useAI() {
 ```
 
 ### Prompt Templates
+
 ```typescript
 const PROMPT_TEMPLATES = {
   synthesis: {
@@ -411,7 +443,9 @@ Questions should be specific and actionable.
 ## 🚀 Advanced AI Features (v2+)
 
 ### 1. **Canvas Conversation**
+
 Chat with your entire canvas as context.
+
 ```typescript
 // "Based on everything here, what should I focus on?"
 // "What am I missing about this topic?"
@@ -419,7 +453,9 @@ Chat with your entire canvas as context.
 ```
 
 ### 2. **Auto-Research**
+
 AI suggests and fetches relevant content.
+
 ```typescript
 interface AutoResearchSuggestion {
   query: string;
@@ -430,7 +466,9 @@ interface AutoResearchSuggestion {
 ```
 
 ### 3. **Collaborative AI**
+
 Multiple AI agents working on different aspects.
+
 ```typescript
 const agents = {
   researcher: "Finds gaps and suggests sources",
@@ -441,7 +479,9 @@ const agents = {
 ```
 
 ### 4. **Export Intelligence**
+
 AI helps create polished outputs.
+
 ```typescript
 interface SmartExport {
   format: 'report' | 'presentation' | 'article' | 'brief';
@@ -456,16 +496,19 @@ interface SmartExport {
 ## 📊 Success Metrics
 
 ### Engagement
+
 - Average AI actions per canvas session
 - Most used AI features
 - User satisfaction with AI suggestions
 
 ### Quality
+
 - Accuracy of synthesis
 - Relevance of connections found
 - Usefulness of generated questions
 
 ### Performance
+
 - AI response time < 3 seconds
 - Embedding generation < 500ms
 - Smooth UI updates during AI operations
@@ -475,16 +518,19 @@ interface SmartExport {
 ## 🎯 Implementation Priority
 
 ### Phase 1 (MVP)
+
 1. ✅ Basic synthesis of selected items
 2. ✅ Simple summarization
 3. ✅ Extract key points
 
 ### Phase 2
+
 1. 🔄 Find connections
 2. 🔄 Generate questions
 3. 🔄 Auto-clustering
 
 ### Phase 3
+
 1. 📝 Smart export
 2. 📝 Canvas conversation
 3. 📝 Auto-research suggestions
@@ -494,6 +540,7 @@ interface SmartExport {
 ## 💬 Example User Flows
 
 ### Research Paper Flow
+
 1. User captures 20+ snippets about quantum computing
 2. Selects all → "Find connections"
 3. AI identifies 3 main schools of thought
@@ -502,6 +549,7 @@ interface SmartExport {
 6. Export as research paper draft
 
 ### Shopping Decision Flow
+
 1. User captures product details from 5 sites
 2. Selects all → "Compare options"
 3. AI creates comparison matrix
@@ -510,6 +558,7 @@ interface SmartExport {
 6. AI provides decision with rationale
 
 ### Learning Flow
+
 1. User captures tutorial snippets
 2. "Suggest learning path"
 3. AI orders items from basic to advanced
@@ -522,6 +571,7 @@ interface SmartExport {
 ## 🔮 Future Vision
 
 The FlowCanvas becomes a **thinking partner**, not just a tool. It:
+
 - Notices patterns you might miss
 - Challenges your assumptions
 - Suggests unexplored angles

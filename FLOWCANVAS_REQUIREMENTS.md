@@ -13,11 +13,13 @@ FlowCanvas is a revolutionary browser feature that transforms how users collect,
 ## 📋 Version 1.0 - Proof of Concept (Week 1)
 
 ### Goal
+
 Demonstrate the core capture-and-canvas concept with minimal viable functionality.
 
 ### User Stories
 
 #### Must Have (P0)
+
 1. **As a user, I can open a FlowCanvas** while browsing
    - Accessible via sidebar button or keyboard shortcut (Cmd/Ctrl + W)
    - Canvas opens in a new tab with special URL: `blueberry://flowcanvas`
@@ -41,6 +43,7 @@ Demonstrate the core capture-and-canvas concept with minimal viable functionalit
 ### Technical Deliverables
 
 #### Frontend Components
+
 ```
 src/renderer/flowcanvas/
 ├── FlowCanvasApp.tsx        # Main canvas application
@@ -56,6 +59,7 @@ src/renderer/flowcanvas/
 ```
 
 #### Backend Integration
+
 ```
 src/main/
 ├── FlowCanvasManager.ts     # Core canvas logic
@@ -66,6 +70,7 @@ src/main/
 ```
 
 #### Data Models
+
 ```typescript
 interface FlowItem {
   id: string;                 // UUID
@@ -96,6 +101,7 @@ interface FlowCanvas {
 ```
 
 ### Success Criteria
+
 - [ ] Can capture at least 10 text snippets from different sites
 - [ ] Items remain in position after page refresh
 - [ ] Canvas loads in under 1 second
@@ -131,24 +137,28 @@ interface FlowCanvas {
 ### New Capabilities
 
 #### Rich Content Types
+
 - **Image Capture**: Right-click any image → "Add to FlowCanvas"
 - **Screenshot Regions**: Capture specific areas of pages
 - **Full Cards**: Capture entire article/post as a card
 - **Quick Notes**: Add text notes directly on canvas
 
 #### Canvas Intelligence
+
 - **Auto-Layout**: "Organize" button arranges items in grid
 - **Connections**: Draw lines between related items
 - **Search**: Find items by content or source
 - **Zoom**: Zoom in/out for overview or detail
 
 #### Better UX
+
 - **Multiple Canvases**: Create/switch between canvases
 - **Canvas Library**: See all your canvases in grid view
 - **Keyboard Navigation**: Arrow keys to move between items
 - **Bulk Actions**: Select multiple items to move/delete
 
 ### Technical Additions
+
 ```typescript
 interface FlowItem {
   // ... v1 fields plus:
@@ -171,6 +181,7 @@ interface FlowCanvas {
 ```
 
 ### Deliverables
+
 - [ ] Support for 5 content types
 - [ ] Connection lines between items
 - [ ] Canvas management UI
@@ -182,6 +193,7 @@ interface FlowCanvas {
 ## 🚀 Version 3.0 - AI-Powered Synthesis (Week 3+)
 
 ### AI Features
+
 1. **Smart Clustering**: AI groups related items automatically
 2. **Summary Generation**: "Summarize this canvas" button
 3. **Insight Extraction**: Find key points across items
@@ -189,18 +201,21 @@ interface FlowCanvas {
 5. **Question Suggestions**: "What to explore next?"
 
 ### Collaboration
+
 1. **Share Canvas**: Generate shareable link
 2. **Real-time Collaboration**: Multiple users on same canvas
 3. **Comments**: Add comments to items
 4. **Version History**: See canvas evolution over time
 
 ### Advanced Layouts
+
 1. **Timeline View**: Arrange by date
 2. **Mind Map View**: Hierarchical organization
 3. **Kanban View**: Organize into columns
 4. **Graph View**: Network visualization
 
 ### Export Options
+
 - Markdown document
 - PDF report
 - JSON data
@@ -212,6 +227,7 @@ interface FlowCanvas {
 ## 🔧 Technical Architecture
 
 ### Frontend Stack
+
 - **React 19**: Already in use
 - **React DnD**: Drag and drop (or @dnd-kit/sortable)
 - **Canvas Rendering**: HTML5 Canvas or SVG for connections
@@ -219,6 +235,7 @@ interface FlowCanvas {
 - **Styling**: Tailwind CSS (already configured)
 
 ### Storage Architecture
+
 ```javascript
 // IndexedDB Schema
 const DB_NAME = 'FlowCanvasDB';
@@ -241,6 +258,7 @@ items: {
 ```
 
 ### IPC Communication
+
 ```typescript
 // Main -> Renderer
 'flowcanvas:item-captured'    // New item captured
@@ -255,6 +273,7 @@ items: {
 ```
 
 ### File Structure
+
 ```
 blueberry-browser/
 ├── src/
@@ -282,17 +301,20 @@ blueberry-browser/
 ## 📊 Success Metrics
 
 ### User Engagement (v1)
+
 - [ ] Users create at least 5 items per canvas
 - [ ] 60% of users return to canvas next day
 - [ ] Average session time > 5 minutes
 
 ### Performance (v1)
+
 - [ ] Canvas loads < 1 second
 - [ ] Drag operations at 60 fps
 - [ ] Save operations < 100ms
 - [ ] Memory usage < 100MB per canvas
 
 ### Quality (v1)
+
 - [ ] Zero data loss incidents
 - [ ] Works on top 100 websites
 - [ ] No browser crashes
@@ -303,6 +325,7 @@ blueberry-browser/
 ## 🚦 Implementation Checklist
 
 ### Week 1 - Core Canvas (v1)
+
 - [ ] Set up FlowCanvas module structure
 - [ ] Create canvas tab with special protocol
 - [ ] Implement drag-and-drop canvas
@@ -313,6 +336,7 @@ blueberry-browser/
 - [ ] Create demo video
 
 ### Week 2 - Enhanced Features (v2)
+
 - [ ] Add image capture support
 - [ ] Implement screenshot tool
 - [ ] Create connection lines
@@ -323,6 +347,7 @@ blueberry-browser/
 - [ ] Performance optimization
 
 ### Future - AI & Collaboration (v3)
+
 - [ ] Integrate AI clustering
 - [ ] Add summary generation
 - [ ] Build sharing mechanism
@@ -337,6 +362,7 @@ blueberry-browser/
 ## 🎯 Definition of Done (v1 MVP)
 
 A user can:
+
 1. Open FlowCanvas from any webpage ✅
 2. Capture at least 10 text snippets ✅
 3. Arrange them spatially on canvas ✅
@@ -346,6 +372,7 @@ A user can:
 7. Experience smooth interactions ✅
 
 The code:
+
 1. Has no memory leaks ✅
 2. Handles errors gracefully ✅
 3. Is modular and extensible ✅
@@ -357,6 +384,7 @@ The code:
 ## 🎨 UI/UX Specifications
 
 ### Visual Design
+
 - **Canvas Background**: Subtle dot grid pattern (#f5f5f5)
 - **Items**: White cards with soft shadows
 - **Hover State**: Blue border + grab cursor
@@ -365,6 +393,7 @@ The code:
 - **Selection**: Blue outline with resize handles
 
 ### Interactions
+
 - **Single Click**: Select item
 - **Double Click**: Open item detail
 - **Right Click**: Context menu
@@ -374,6 +403,7 @@ The code:
 - **Ctrl/Cmd + Z**: Undo last action
 
 ### Canvas Controls
+
 ```
 ┌─────────────────────────────────────┐
 │ [←][→] Canvas Name  [Search] [+ New] │
@@ -393,12 +423,14 @@ The code:
 ## 🔒 Privacy & Security
 
 ### Data Handling
+
 - All canvas data stored locally by default
 - No automatic cloud sync without consent
 - Captured content includes source attribution
 - Respect robots.txt and content policies
 
 ### Permissions
+
 - Request clipboard access for capture
 - Request storage permission for persistence
 - Optional: network access for sync
@@ -408,18 +440,21 @@ The code:
 ## 📝 Development Notes
 
 ### Key Decisions
+
 1. **Why IndexedDB?** Better for large data than localStorage
 2. **Why separate tab?** Full screen real estate for canvas
 3. **Why not iframe?** Security and performance concerns
 4. **Why React DnD?** Most mature, well-documented
 
 ### Potential Challenges
+
 1. **Performance with 100+ items**: Virtual scrolling/culling
 2. **Large images**: Thumbnail generation, lazy loading
 3. **Cross-origin content**: Proxy or screenshot approach
 4. **Conflict resolution**: Operational transforms for collaboration
 
 ### Testing Scenarios
+
 1. Capture from paywalled site
 2. Capture from SPA (React/Vue sites)
 3. Large canvas with 200+ items
@@ -431,12 +466,14 @@ The code:
 ## 📚 References
 
 ### Inspiration
+
 - **Milanote**: Visual board for creatives
 - **Miro/Figma**: Infinite canvas interactions
 - **Obsidian Canvas**: Knowledge graph approach
 - **Pinterest**: Visual collection patterns
 
 ### Technical Resources
+
 - [React DnD Documentation](https://react-dnd.github.io/react-dnd/)
 - [IndexedDB Best Practices](https://web.dev/indexeddb/)
 - [Electron Context Menus](https://www.electronjs.org/docs/api/menu)

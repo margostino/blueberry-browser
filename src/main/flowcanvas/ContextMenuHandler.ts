@@ -1,8 +1,8 @@
 import { Menu, MenuItem, WebContents, clipboard } from "electron";
+import { createLogger } from "../../services/Logger";
 import { FlowCanvasManager } from "./FlowCanvasManager";
 import { ScreenshotManager } from "./ScreenshotManager";
-import { createLogger } from "../../services/Logger";
-const logger = createLogger({ module: 'FlowCanvasContextMenu' });
+const logger = createLogger({ module: "FlowCanvasContextMenu" });
 
 export class FlowCanvasContextMenuHandler {
   private flowCanvasManager: FlowCanvasManager;
@@ -16,7 +16,7 @@ export class FlowCanvasContextMenuHandler {
       const menu = new Menu();
       menu.append(
         new MenuItem({
-          label: "Capture Full Page to FlowCanvas",
+          label: "Full Page to Canvas",
           accelerator: "CmdOrCtrl+Shift+S",
           click: async () => {
             logger.debug("Context menu: Capture Full Screenshot clicked");
@@ -34,7 +34,9 @@ export class FlowCanvasContextMenuHandler {
               };
               const item =
                 await this.flowCanvasManager.captureItem(captureRequest);
-              logger.info("Screenshot captured successfully", { itemId: item.id });
+              logger.info("Screenshot captured successfully", {
+                itemId: item.id,
+              });
               webContents.send("flowcanvas:item-added", {
                 success: true,
                 type: "screenshot",
@@ -47,26 +49,30 @@ export class FlowCanvasContextMenuHandler {
       );
       menu.append(
         new MenuItem({
-          label: "Capture Area to FlowCanvas",
+          label: "Area to FlowCanvas",
           accelerator: "CmdOrCtrl+Shift+A",
           click: async () => {
             logger.debug("🎯 Context menu: Capture Area clicked");
             try {
               await this.screenshotManager.startSelectionMode(webContents);
             } catch (error) {
-              logger.error("❌ Failed to start selection mode:", error as Error);
+              logger.error(
+                "❌ Failed to start selection mode:",
+                error as Error
+              );
             }
           },
         })
       );
       menu.append(
         new MenuItem({
-          label: "Paste Screenshot from Clipboard",
+          label: "Paste from Clipboard",
           accelerator: "CmdOrCtrl+Shift+V",
           click: async () => {
             logger.debug("📋 Context menu: Paste from Clipboard clicked");
             try {
-              const success = await this.screenshotManager.captureFromClipboard();
+              const success =
+                await this.screenshotManager.captureFromClipboard();
               if (success) {
                 webContents.send("flowcanvas:item-added", {
                   success: true,
@@ -77,7 +83,10 @@ export class FlowCanvasContextMenuHandler {
                 logger.debug("📋 No image found in clipboard");
               }
             } catch (error) {
-              logger.error("❌ Failed to paste from clipboard:", error as Error);
+              logger.error(
+                "❌ Failed to paste from clipboard:",
+                error as Error
+              );
             }
           },
         })
@@ -86,7 +95,7 @@ export class FlowCanvasContextMenuHandler {
       if (params.selectionText && params.selectionText.trim()) {
         menu.append(
           new MenuItem({
-            label: "Add to FlowCanvas",
+            label: "Text to Canvas",
             accelerator: "CmdOrCtrl+Shift+W",
             click: async () => {
               logger.debug("🖱️ Context menu: Add to FlowCanvas clicked");

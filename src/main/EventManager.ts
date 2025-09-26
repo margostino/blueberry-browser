@@ -3,17 +3,17 @@ import type { WebContents } from "electron";
 
 import type { Window } from "./Window";
 import { createLogger } from "../services/Logger";
-import { SecurityValidator } from "../services/SecurityValidator";
+
 
 const logger = createLogger({ module: 'EventManager' });
 
 export class EventManager {
   private mainWindow: Window;
-  private securityValidator: SecurityValidator;
+
 
   constructor(mainWindow: Window) {
     this.mainWindow = mainWindow;
-    this.securityValidator = new SecurityValidator();
+
     this.setupEventHandlers();
   }
   private setupEventHandlers(): void {
@@ -26,8 +26,8 @@ export class EventManager {
   private handleTabEvents(): void {
     ipcMain.handle("create-tab", (_, url?: string) => {
       if (url) {
-        const sanitizedUrl = this.securityValidator.sanitizeInput(url);
-        const newTab = this.mainWindow.createTab(sanitizedUrl);
+        // Don't HTML-encode the URL - it's not being rendered as HTML
+        const newTab = this.mainWindow.createTab(url);
         return { id: newTab.id, title: newTab.title, url: newTab.url };
       }
       const newTab = this.mainWindow.createTab();
@@ -49,16 +49,16 @@ export class EventManager {
       }));
     });
     ipcMain.handle("navigate-to", (_, url: string) => {
-      const sanitizedUrl = this.securityValidator.sanitizeInput(url);
+      // Don't HTML-encode the URL - it's not being rendered as HTML
       if (this.mainWindow.activeTab) {
-        this.mainWindow.activeTab.loadURL(sanitizedUrl);
+        this.mainWindow.activeTab.loadURL(url);
       }
     });
     ipcMain.handle("navigate-tab", async (_, tabId: string, url: string) => {
-      const sanitizedUrl = this.securityValidator.sanitizeInput(url);
+      // Don't HTML-encode the URL - it's not being rendered as HTML
       const tab = this.mainWindow.getTab(tabId);
       if (tab) {
-        await tab.loadURL(sanitizedUrl);
+        await tab.loadURL(url);
         return true;
       }
       return false;

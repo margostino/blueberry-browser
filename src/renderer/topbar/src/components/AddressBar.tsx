@@ -21,9 +21,12 @@ export const AddressBar: React.FC = React.memo(() => {
         if (!url.trim()) return
         let finalUrl = url.trim()
         if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-            if (finalUrl.includes('.') && !finalUrl.includes(' ')) {
+            // Check if it looks like a domain/URL (contains dot followed by TLD-like pattern)
+            const isDomainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/.test(finalUrl)
+            if (isDomainPattern) {
                 finalUrl = `https://${finalUrl}`
             } else {
+                // Treat as search query
                 finalUrl = `https://www.google.com/search?q=${encodeURIComponent(finalUrl)}`
             }
         }
