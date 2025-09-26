@@ -18,7 +18,7 @@ export class Tab {
         webSecurity: true,
         preload: isFlowCanvas
           ? require("path").join(__dirname, "../preload/flowcanvas.js")
-          : undefined,
+          : require("path").join(__dirname, "../preload/tab.js"),
       },
     });
     this.setupEventListeners();
@@ -65,13 +65,55 @@ export class Tab {
     return await this.webContentsView.webContents.capturePage();
   }
   async runJs(code: string): Promise<any> {
-    return await this.webContentsView.webContents.executeJavaScript(code);
+    // Remove any leading "return " statement since it's illegal outside a function
+    const cleanedCode = code.startsWith('return ') ? code.substring(7) : code;
+    return await this.webContentsView.webContents.executeJavaScript(cleanedCode);
   }
   async getTabHtml(): Promise<string> {
     return await this.runJs("return document.documentElement.outerHTML");
   }
   async getTabText(): Promise<string> {
-    return await this.runJs("return document.documentElement.innerText");
+    try {
+      // Check if the webContents is ready
+      if (!this.webContentsView.webContents || this.webContentsView.webContents.isDestroyed()) {
+        return '';
+      }
+
+      // Wait for the page to finish loading if it's still loading
+      if (this.webContentsView.webContents.isLoading()) {
+        await new Promise<void>((resolve) => {
+          const listener = () => {
+            this.webContentsView.webContents.off('did-stop-loading', listener);
+            resolve();
+          };
+          this.webContentsView.webContents.once('did-stop-loading', listener);
+          // Timeout after 5 seconds to prevent hanging
+          setTimeout(() => {
+            this.webContentsView.webContents.off('did-stop-loading', listener);
+            resolve();
+          }, 5000);
+        });
+      }
+
+      // First try the preload API if available
+      try {
+        const result = await this.webContentsView.webContents.executeJavaScript(
+          `window.__electronAPI && window.__electronAPI.getPageText ? window.__electronAPI.getPageText() : document.documentElement.innerText`,
+          true
+        );
+        return result || '';
+      } catch (apiError) {
+        // If preload API fails, try direct access (no return statement!)
+        const result = await this.runJs("document.documentElement.innerText");
+        return result || '';
+      }
+    } catch (error) {
+      console.warn('Unable to extract page text:', error);
+      // Fallback: Return page info as context
+      const title = this.webContentsView.webContents.getTitle();
+      const url = this.webContentsView.webContents.getURL();
+      return `Page: ${title}\nURL: ${url}`;
+    }
   }
   loadURL(url: string): Promise<void> {
     this._url = url;
