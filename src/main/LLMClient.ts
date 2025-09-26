@@ -4,10 +4,10 @@ import { streamText, type CoreMessage, type LanguageModel } from "ai";
 import * as dotenv from "dotenv";
 import { WebContents } from "electron";
 import { join } from "path";
-import type { Window } from "./Window";
-import { createLogger } from "../services/Logger";
-import { ErrorHandler, APIError } from "../services/ErrorHandler";
 import { config } from "../config/Config";
+import { APIError, ErrorHandler } from "../services/ErrorHandler";
+import { createLogger } from "../services/Logger";
+import type { Window } from "./Window";
 dotenv.config({ path: join(__dirname, "../../.env") });
 interface ChatRequest {
   message: string;
@@ -23,8 +23,8 @@ const DEFAULT_MODELS: Record<LLMProvider, string> = {
   anthropic: "claude-3-5-sonnet-20241022",
 };
 const MAX_CONTEXT_LENGTH = 4000;
-const DEFAULT_TEMPERATURE = config.get('ai').temperature;
-const logger = createLogger({ module: 'LLMClient' });
+const DEFAULT_TEMPERATURE = config.get("ai").temperature;
+const logger = createLogger({ module: "LLMClient" });
 
 export class LLMClient {
   private readonly webContents: WebContents;
@@ -44,10 +44,10 @@ export class LLMClient {
     this.window = window;
   }
   private getProvider(): LLMProvider {
-    return config.get('ai').provider;
+    return config.get("ai").provider;
   }
   private getModelName(): string {
-    return config.get('ai').model || DEFAULT_MODELS[this.provider];
+    return config.get("ai").model || DEFAULT_MODELS[this.provider];
   }
   private initializeModel(): LanguageModel | null {
     const apiKey = this.getApiKey();
@@ -73,7 +73,9 @@ export class LLMClient {
   }
   private logInitializationStatus(): void {
     if (this.model) {
-      logger.info(`LLM Client initialized with ${this.provider} provider using model: ${this.modelName}`);
+      logger.info(
+        `LLM Client initialized with ${this.provider} provider using model: ${this.modelName}`
+      );
     } else {
       const keyName =
         this.provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY";
@@ -94,9 +96,9 @@ export class LLMClient {
             screenshot = image.toDataURL();
           } catch (error) {
             const appError = ErrorHandler.handle(error, {
-              module: 'LLMClient',
-              operation: 'captureScreenshot',
-              tabId: activeTab.id
+              module: "LLMClient",
+              operation: "captureScreenshot",
+              tabId: activeTab.id,
             });
             logger.error("Failed to capture screenshot", appError);
           }
@@ -129,7 +131,9 @@ export class LLMClient {
       const messages = await this.prepareMessagesWithContext(request);
       await this.streamResponse(messages, request.messageId);
     } catch (error) {
-      logger.error("Error in LLM request", error as Error, { messageId: request.messageId });
+      logger.error("Error in LLM request", error as Error, {
+        messageId: request.messageId,
+      });
       this.handleStreamError(error, request.messageId);
     }
   }
@@ -196,34 +200,33 @@ export class LLMClient {
     messageId: string
   ): Promise<void> {
     if (!this.model) {
-      throw new APIError(
-        "Model not initialized",
-        undefined,
-        undefined,
-        { module: 'LLMClient', operation: 'streamResponse' }
-      );
+      throw new APIError("Model not initialized", undefined, undefined, {
+        module: "LLMClient",
+        operation: "streamResponse",
+      });
     }
-    
+
     const context = {
-      module: 'LLMClient',
-      operation: 'streamResponse',
-      metadata: { messageId, provider: this.provider }
+      module: "LLMClient",
+      operation: "streamResponse",
+      metadata: { messageId, provider: this.provider },
     };
 
     const model = this.model;
     try {
       const result = await ErrorHandler.withRetry(
-        async () => streamText({
-          model,
-          messages,
-          temperature: DEFAULT_TEMPERATURE,
-          maxRetries: 3,
-          abortSignal: undefined,
-        }),
+        async () =>
+          streamText({
+            model,
+            messages,
+            temperature: DEFAULT_TEMPERATURE,
+            maxRetries: 3,
+            abortSignal: undefined,
+          }),
         context,
         3
       );
-      
+
       await this.processStream(result.textStream, messageId);
     } catch (error) {
       const appError = ErrorHandler.handle(error, context);

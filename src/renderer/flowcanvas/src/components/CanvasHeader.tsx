@@ -7,7 +7,7 @@ import { NoteDialog } from './NoteDialog';
 interface CanvasHeaderProps {
   canvas: FlowCanvas;
   onCanvasChange: (canvas: FlowCanvas) => void;
-  onFindConnections: () => void;
+  onFindConnections: (mode?: 'similarity' | 'llm') => void;
   isFindingConnections: boolean;
   onClearConnections: () => void;
 }
@@ -112,14 +112,25 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({
       </div>
       <div className="canvas-header-right">
         {canvas.items.length > 1 && (
-          <button
-            className="canvas-action-btn"
-            title="Find Connections"
-            onClick={() => onFindConnections()}
-            disabled={isFindingConnections}
-          >
-            {isFindingConnections ? 'Finding...' : '🔗 Find Connections'}
-          </button>
+          <>
+            <button
+              className="canvas-action-btn"
+              title="Find Connections (Similarity)"
+              onClick={() => onFindConnections('similarity')}
+              disabled={isFindingConnections}
+            >
+              {isFindingConnections ? 'Finding...' : '🔗 Similarity'}
+            </button>
+            <button
+              className="canvas-action-btn"
+              title="Find Connections (AI Analysis)"
+              onClick={() => onFindConnections('llm')}
+              disabled={isFindingConnections}
+              style={{ marginLeft: '8px' }}
+            >
+              {isFindingConnections ? 'Analyzing...' : '🤖 AI Analysis'}
+            </button>
+          </>
         )}
         {hasConnections && (
           <button

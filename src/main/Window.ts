@@ -1,13 +1,13 @@
 import { BaseWindow, shell } from "electron";
 import * as path from "path";
+import { config } from "../config/Config";
+import { createLogger } from "../services/Logger";
+import { trackAction } from "../services/Telemetry";
 import { SideBar } from "./SideBar";
 import { Tab } from "./Tab";
 import { TopBar } from "./TopBar";
 import { FlowCanvasManager } from "./flowcanvas/FlowCanvasManager";
-import { createLogger } from "../services/Logger";
-import { trackAction } from "../services/Telemetry";
-import { config } from "../config/Config";
-const logger = createLogger({ module: 'Window' });
+const logger = createLogger({ module: "Window" });
 
 export class Window {
   private baseWindowInstance: BaseWindow;
@@ -19,7 +19,7 @@ export class Window {
   private flowCanvasManager: FlowCanvasManager;
   constructor(flowCanvasManager: FlowCanvasManager) {
     this.flowCanvasManager = flowCanvasManager;
-    const windowConfig = config.get('window');
+    const windowConfig = config.get("window");
     this.baseWindowInstance = new BaseWindow({
       width: windowConfig.defaultWidth,
       height: windowConfig.defaultHeight,
@@ -29,10 +29,14 @@ export class Window {
       ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
       trafficLightPosition: { x: 15, y: 13 },
     });
-    this.baseWindowInstance.setMinimumSize(windowConfig.minWidth, windowConfig.minHeight);
+    this.baseWindowInstance.setMinimumSize(
+      windowConfig.minWidth,
+      windowConfig.minHeight
+    );
     this.topBarInstance = new TopBar(this.baseWindowInstance);
     this.sideBarInstance = new SideBar(this.baseWindowInstance);
     this.sideBarInstance.client.setWindow(this);
+    this.flowCanvasManager.setLLMClient(this.sideBarInstance.client);
     this.createTab();
     this.baseWindowInstance.on("resize", () => {
       this.updateTabBounds();
@@ -111,9 +115,9 @@ export class Window {
     const bounds = this.baseWindowInstance.getBounds();
     tab.view.setBounds({
       x: 0,
-      y: 88, 
-      width: bounds.width - 400, 
-      height: bounds.height - 88, 
+      y: 88,
+      width: bounds.width - 400,
+      height: bounds.height - 88,
     });
     this.tabsMap.set(tabId, tab);
     if (this.tabsMap.size === 1) {
@@ -121,30 +125,30 @@ export class Window {
     } else {
       tab.hide();
     }
-    
-    trackAction('create_tab', 'window', url || 'new', undefined, { 
-      tabId, 
-      tabCount: this.tabsMap.size 
+
+    trackAction("create_tab", "window", url || "new", undefined, {
+      tabId,
+      tabCount: this.tabsMap.size,
     });
-    logger.info('Tab created', { tabId, url, tabCount: this.tabsMap.size });
-    
+    logger.info("Tab created", { tabId, url, tabCount: this.tabsMap.size });
+
     return tab;
   }
   closeTab(tabId: string): boolean {
     const tab = this.tabsMap.get(tabId);
     if (!tab) {
-      logger.warn('Attempted to close non-existent tab', { tabId });
+      logger.warn("Attempted to close non-existent tab", { tabId });
       return false;
     }
     this.baseWindowInstance.contentView.removeChildView(tab.view);
     tab.destroy();
     this.tabsMap.delete(tabId);
-    
-    trackAction('close_tab', 'window', undefined, undefined, { 
-      tabId, 
-      remainingTabs: this.tabsMap.size 
+
+    trackAction("close_tab", "window", undefined, undefined, {
+      tabId,
+      remainingTabs: this.tabsMap.size,
     });
-    logger.info('Tab closed', { tabId, remainingTabs: this.tabsMap.size });
+    logger.info("Tab closed", { tabId, remainingTabs: this.tabsMap.size });
     if (this.activeTabId === tabId) {
       this.activeTabId = null;
       const remainingTabs = Array.from(this.tabsMap.keys());

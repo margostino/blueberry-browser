@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld('flowCanvasAPI', {
   updateItem: (item: FlowCanvasItem) => ipcRenderer.invoke('flowcanvas:update-item', item),
   deleteItem: (itemId: string) => ipcRenderer.invoke('flowcanvas:delete-item', itemId),
   openCanvas: () => ipcRenderer.invoke('flowcanvas:open'),
-  findConnections: (canvas: FlowCanvas) => ipcRenderer.invoke('flowcanvas:find-connections', canvas),
+  findConnections: (canvas: FlowCanvas, mode?: 'similarity' | 'llm', prompt?: string) => ipcRenderer.invoke('flowcanvas:find-connections', canvas, mode, prompt),
   on: (channel: string, callback: (...args: unknown[]) => void) => {
     const validChannels = [
       'flowcanvas:item-captured',

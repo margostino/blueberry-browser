@@ -1,42 +1,71 @@
 import React, { useEffect } from 'react';
 import { Canvas } from './components/Canvas';
 import { CanvasHeader } from './components/CanvasHeader';
-import { FlowCanvas as FlowCanvasType } from '../../../types/flowcanvas';
+import { PromptModal } from './components/PromptModal';
 import { useCanvas } from './hooks/useCanvas';
 import './styles/flowcanvas.css';
 
 export const FlowCanvasApp: React.FC = () => {
   const { canvas, loading, error, loadCanvas, saveCanvas, updateItem, deleteItem } = useCanvas();
   const [isFindingConnections, setIsFindingConnections] = React.useState(false);
-  
+  const [isPromptModalOpen, setIsPromptModalOpen] = React.useState(false);
+
+  const defaultPrompt = `Role: You are an expert comparative analyst. Your job is to determine if there is a meaningful connection between two texts, either through:
+• Direct overlap (shared words, themes, entities), or
+• Common knowledge links (external cultural, literary, or symbolic associations).
+
+Instructions:
+1. Analyze both texts.
+2. Check for explicit overlap (words, entities, themes).
+3. Check for implicit/common knowledge connections (e.g., symbols, metaphors, historical/literary references).
+4. Decide if there is a connection:
+• If yes → connection: true and explain briefly why.
+• If no → connection: false and explain briefly why not.
+
+Output Format:
+Return only valid JSON in this form:
+{
+  "connection": true,
+  "reasoning": "Both texts discuss mirrors, and Borges is known for using mirrors as metaphors in his stories."
+}
+
+Example (no connection):
+{
+  "connection": false,
+  "reasoning": "Text A is about quantum physics and Text B is a cooking recipe; they do not share direct or implicit links."
+}`;
+
   useEffect(() => {
     loadCanvas();
   }, [loadCanvas]);
-  
-  const handleFindConnections = async () => {
-    if (!canvas || canvas.items.length < 2 || isFindingConnections) return;
-    
+
+  const handleFindConnections = async (mode: 'similarity' | 'llm' = 'similarity', prompt?: string) => {
+    if (!canvas) return;
+
+    if (mode === 'llm' && !prompt) {
+      setIsPromptModalOpen(true);
+      return;
+    }
+
     setIsFindingConnections(true);
-    
+
     try {
-      console.log('🔍 Finding connections for canvas items...');
-      
-      // Send request to main process to find connections
+      console.log(`🔍 Finding connections using ${mode} mode...`);
+
       if (window.electronAPI) {
-        const connections = await window.electronAPI.invoke('flowcanvas:find-connections', canvas);
-        
-        if (connections && connections.length > 0) {
-          // Update canvas with new connections
-          const updatedCanvas = {
+        const result = await window.electronAPI.invoke('flowcanvas:find-connections', canvas, mode, prompt);
+
+        if (result && result.connections && result.connections.length > 0) {
+          const updatedCanvas = result.canvas || {
             ...canvas,
-            connections: [...(canvas.connections || []), ...connections],
+            connections: [...(canvas.connections || []), ...result.connections],
             modified: Date.now()
           };
-          
+
           saveCanvas(updatedCanvas);
-          console.log(`✅ Found and created ${connections.length} connections`);
+          console.log(`✅ Found and created ${result.connections.length} connections using ${mode} mode`);
         } else {
-          console.log('❌ No strong connections found');
+          console.log(`❌ No strong connections found using ${mode} mode`);
         }
       }
     } catch (error) {
@@ -45,35 +74,36 @@ export const FlowCanvasApp: React.FC = () => {
       setIsFindingConnections(false);
     }
   };
-  
+
+  const handlePromptConfirm = (prompt: string) => {
+    handleFindConnections('llm', prompt);
+  };
+
   const handleClearConnections = () => {
     if (!canvas || !canvas.connections || canvas.connections.length === 0) {
       return;
     }
-    
+
     console.log('🗑️ Clearing all connections and connection notes...');
-    
-    // Remove all connection note items (those created by AI)
+
     const filteredItems = canvas.items.filter(item => {
-      // Remove notes that were created as AI connections
       if (item.type === 'note' && item.source.url === 'note://ai-connection') {
         return false;
       }
       return true;
     });
-    
-    // Update canvas without connections and AI notes
+
     const updatedCanvas = {
       ...canvas,
       items: filteredItems,
       connections: [],
       modified: Date.now()
     };
-    
+
     saveCanvas(updatedCanvas);
     console.log('✅ Cleared all connections');
   };
-  
+
   if (loading) {
     return (
       <div className="flowcanvas-loading">
@@ -81,7 +111,7 @@ export const FlowCanvasApp: React.FC = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="flowcanvas-error">
@@ -90,7 +120,7 @@ export const FlowCanvasApp: React.FC = () => {
       </div>
     );
   }
-  
+
   if (!canvas) {
     return (
       <div className="flowcanvas-empty">
@@ -98,7 +128,7 @@ export const FlowCanvasApp: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="flowcanvas-app">
       <CanvasHeader
@@ -113,6 +143,12 @@ export const FlowCanvasApp: React.FC = () => {
         onItemUpdate={updateItem}
         onItemDelete={deleteItem}
         onCanvasUpdate={saveCanvas}
+      />
+      <PromptModal
+        isOpen={isPromptModalOpen}
+        onClose={() => setIsPromptModalOpen(false)}
+        onConfirm={handlePromptConfirm}
+        defaultPrompt={defaultPrompt}
       />
     </div>
   );
