@@ -18,6 +18,7 @@ export default defineConfig({
             __dirname,
             "src/preload/screenshot-selector.ts"
           ),
+          tab: resolve(__dirname, "src/preload/tab.ts"),
         },
       },
     },

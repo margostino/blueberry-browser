@@ -49,6 +49,6 @@ if (process.contextIsolated) {
     console.error(error);
   }
 } else {
-  window.electron = electronAPI;
-  window.sidebarAPI = sidebarAPI;
+  (window as any).electron = electronAPI;
+  (window as any).sidebarAPI = sidebarAPI;
 }

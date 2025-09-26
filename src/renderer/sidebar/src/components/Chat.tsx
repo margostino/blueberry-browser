@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
-import { ArrowUp, Square, Sparkles, Plus } from 'lucide-react'
+import { ArrowUp, Plus } from 'lucide-react'
 import { useChat } from '../contexts/ChatContext'
 import { cn } from '@common/lib/utils'
 import { Button } from '@common/components/Button'
@@ -49,6 +49,7 @@ const StreamingText: React.FC<{ content: string }> = ({ content }) => {
             }, 10)
             return () => clearTimeout(timer)
         }
+        return undefined
     }, [content, currentIndex])
     return (
         <div className="whitespace-pre-wrap text-foreground">
@@ -124,7 +125,11 @@ const LoadingIndicator: React.FC = () => {
             "transition-transform duration-300 ease-in-out",
             isVisible ? "scale-100" : "scale-0"
         )}>
-            ...
+            <div className="flex items-center gap-1 px-4 py-2 bg-muted/50 rounded-lg">
+                <span className="inline-block animate-[dot-pulse_1.4s_ease-in-out_infinite]">•</span>
+                <span className="inline-block animate-[dot-pulse_1.4s_ease-in-out_0.2s_infinite]">•</span>
+                <span className="inline-block animate-[dot-pulse_1.4s_ease-in-out_0.4s_infinite]">•</span>
+            </div>
         </div>
     )
 }

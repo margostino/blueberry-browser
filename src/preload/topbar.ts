@@ -32,6 +32,6 @@ if (process.contextIsolated) {
     console.error(error);
   }
 } else {
-  window.electron = electronAPI;
-  window.topBarAPI = topBarAPI;
+  (window as any).electron = electronAPI;
+  (window as any).topBarAPI = topBarAPI;
 }
