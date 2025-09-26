@@ -1,10 +1,37 @@
 # 🤖 FlowCanvas AI Integration - Synthesis & Intelligence Layer
 
-**⚠️ Disclaimer:** This is just a compilation of possible AI-powered features to build on top on FlowCanvas!
+**✅ Status Update:** Several AI features have been implemented! See markers (✅ = Implemented, 🔄 = In Progress, 📝 = Planned)
 
 ## Overview
 
 Transform your FlowCanvas from a collection of information into actionable insights, summaries, and new understanding through AI-powered synthesis.
+
+---
+
+## ✅ Currently Implemented Features
+
+### **AI-Powered Connection Discovery**
+FlowCanvas now includes intelligent connection finding with two modes:
+
+1. **Similarity Analysis** (🔗 button)
+   - Fast, local analysis finding connections through shared keywords and topics
+   - Identifies items from the same domain
+   - Highlights common themes and overlapping content
+   - Green connection lines for visual distinction
+
+2. **AI Deep Analysis** (🤖 button)
+   - LLM-powered semantic analysis for discovering non-obvious relationships
+   - Customizable analysis prompts for specialized domains
+   - Finds implicit connections through cultural, literary, or symbolic associations
+   - Purple connection lines to distinguish AI-discovered connections
+   - Auto-generated explanation notes for each connection
+
+**Key Features:**
+- Visual connection lines between related items
+- Automatic note generation explaining why items are connected
+- Support for batch analysis of multiple items
+- Custom prompt support for domain-specific analysis
+- Different visual styles for different connection types
 
 ---
 
@@ -44,7 +71,7 @@ const quickActions: AIQuickAction[] = [
     label: "Find Connections",
     shortcut: "Cmd+L",
     minItems: 2,
-    action: findConnections
+    action: findConnections  // ✅ IMPLEMENTED
   },
   {
     icon: "❓",
@@ -189,7 +216,19 @@ async function autoCluster(items: FlowItem[]): Promise<ClusterGroup[]> {
 }
 ```
 
-### 2. **AI Lasso** (Draw to select → AI understands intent)
+### 2. **✅ AI-Powered Connection Discovery** (IMPLEMENTED)
+
+Two modes of connection finding:
+- **Similarity-Based**: Fast local analysis finding connections through shared keywords and topics
+- **LLM-Based**: Deep semantic analysis with customizable prompts for discovering non-obvious relationships
+
+Features:
+- Visual connections with different colors (green for similarity, purple for AI)
+- Auto-generated explanation notes for each connection
+- Custom prompt support for specialized analysis
+- Handles multiple items simultaneously
+
+### 3. **AI Lasso** (Draw to select → AI understands intent)
 
 ```typescript
 // User draws rough circle around items
@@ -201,7 +240,7 @@ async function autoCluster(items: FlowItem[]): Promise<ClusterGroup[]> {
 - Generate pricing strategy"
 ```
 
-### 3. **Living Summaries**
+### 4. **Living Summaries**
 
 AI-generated summary cards that update as you add more items.
 
@@ -215,7 +254,7 @@ interface LiveSummary extends FlowItem {
 }
 ```
 
-### 4. **Contradiction Detection**
+### 5. **Contradiction Detection**
 
 Automatic highlighting when AI detects conflicting information.
 
@@ -228,7 +267,7 @@ interface Contradiction {
 }
 ```
 
-### 5. **Smart Paths**
+### 6. **Smart Paths**
 
 AI suggests reading order through items.
 
@@ -521,9 +560,12 @@ interface SmartExport {
 
 ### Phase 1 (MVP)
 
-1. ✅ Basic synthesis of selected items
-2. ✅ Simple summarization
-3. ✅ Extract key points
+1. ✅ Find connections (Similarity-based) - **IMPLEMENTED**
+2. ✅ Find connections (AI/LLM-based) - **IMPLEMENTED**
+3. ✅ Auto-generated connection explanations - **IMPLEMENTED**
+4. 🔄 Basic synthesis of selected items
+5. 🔄 Simple summarization
+6. 📝 Extract key points
 
 ### Phase 2
 

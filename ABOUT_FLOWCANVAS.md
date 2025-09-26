@@ -39,7 +39,11 @@ While browsing any website:
 
 - **Drag & Drop**: Arrange items spatially to match your mental model
 - **Visual Connections**: Draw links between related items
-- **Color Coding**: Assign colors to categorize information
+- **Smart Connections**: 
+  - **Similarity Analysis**: Automatically find connections between items based on shared topics and content overlap
+  - **AI-Powered Analysis**: Use LLM to discover deeper, non-obvious connections with customizable analysis prompts
+- **Connection Notes**: Each discovered connection includes an explanation of why items are related
+- **Color Coding**: Assign colors to categorize information (green for similarity, purple for AI connections)
 - **Zoom & Pan**: Navigate large canvases effortlessly
 - **Quick Notes**: Add sticky notes for thoughts and todos
 
@@ -97,8 +101,12 @@ FlowCanvas is designed as a **platform for knowledge work**:
 
 - **AI Integration**: Chat with captured content using sidebar AI
 - **Smart Suggestions**: AI recommends connections between items
+  - **Similarity-Based**: Finds connections based on shared keywords, topics, and domains
+  - **LLM-Based Analysis**: Deep semantic analysis with customizable prompts for finding non-obvious relationships
+- **Connection Explanations**: Auto-generated notes explaining why items are connected
 - **Auto-Organization**: Intelligent layout algorithms
 - **Content Extraction**: Automatic summarization and key point extraction
+- **Visual Connection Types**: Different colors and styles for different connection types
 
 ### Future Possibilities
 
@@ -167,7 +175,13 @@ FlowCanvas represents a shift from **consumption** to **creation**:
 ## Tips & Tricks
 
 - **Keyboard First**: Learn shortcuts for faster capture (C for capture, N for note)
-- **Color Systems**: Develop your own color coding (green = confirmed, yellow = pending)
+- **Finding Connections**: 
+  - Use 🔗 button for quick similarity-based connection discovery
+  - Use 🤖 button for deeper AI-powered analysis with custom prompts
+  - Connection notes appear automatically to explain relationships
+- **Color Systems**: 
+  - Develop your own color coding (green = confirmed, yellow = pending)
+  - Green connections = similarity-based, Purple connections = AI-analyzed
 - **Grid Layout**: Hold Shift while dragging for grid snapping
 - **Batch Operations**: Select multiple items with Cmd/Ctrl for group actions
 - **Quick Access**: Pin frequently used canvases
