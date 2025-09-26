@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('flowCanvasAPI', {
   updateItem: (item: FlowCanvasItem) => ipcRenderer.invoke('flowcanvas:update-item', item),
   deleteItem: (itemId: string) => ipcRenderer.invoke('flowcanvas:delete-item', itemId),
   openCanvas: () => ipcRenderer.invoke('flowcanvas:open'),
+  findConnections: (canvas: FlowCanvas) => ipcRenderer.invoke('flowcanvas:find-connections', canvas),
   on: (channel: string, callback: (...args: unknown[]) => void) => {
     const validChannels = [
       'flowcanvas:item-captured',
@@ -33,7 +34,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'flowcanvas:capture-item',
       'flowcanvas:update-item',
       'flowcanvas:delete-item',
-      'flowcanvas:open'
+      'flowcanvas:open',
+      'flowcanvas:find-connections'
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args);

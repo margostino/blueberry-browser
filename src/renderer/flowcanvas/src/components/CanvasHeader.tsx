@@ -1,17 +1,29 @@
 import React, { useState } from 'react';
-import { FlowCanvas, FlowItem } from '../../../../types/flowcanvas';
-import { NoteDialog } from './NoteDialog';
-import ExportModal from './ExportModal';
 import { v4 as uuidv4 } from 'uuid';
+import { FlowCanvas, FlowItem } from '../../../../types/flowcanvas';
+import ExportModal from './ExportModal';
+import { NoteDialog } from './NoteDialog';
+
 interface CanvasHeaderProps {
   canvas: FlowCanvas;
   onCanvasChange: (canvas: FlowCanvas) => void;
+  onFindConnections: () => void;
+  isFindingConnections: boolean;
+  onClearConnections: () => void;
 }
-export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChange }) => {
+
+export const CanvasHeader: React.FC<CanvasHeaderProps> = ({
+  canvas,
+  onCanvasChange,
+  onFindConnections,
+  isFindingConnections,
+  onClearConnections
+}) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [canvasName, setCanvasName] = useState(canvas.name);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
   const handleNameSave = () => {
     if (canvasName.trim() && canvasName !== canvas.name) {
       onCanvasChange({
@@ -21,6 +33,7 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
     }
     setIsEditingName(false);
   };
+
   const handleNameKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleNameSave();
@@ -29,6 +42,7 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
       setIsEditingName(false);
     }
   };
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
@@ -39,6 +53,7 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
   const handleCreateNote = (content: string, color?: string) => {
     const newNote: FlowItem = {
       id: uuidv4(),
@@ -67,6 +82,9 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
     onCanvasChange(updatedCanvas);
     console.log('📝 Note created:', newNote.id);
   };
+
+  const hasConnections = canvas.connections && canvas.connections.length > 0;
+
   return (
     <div className="canvas-header">
       <div className="canvas-header-left">
@@ -93,6 +111,26 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
         </span>
       </div>
       <div className="canvas-header-right">
+        {canvas.items.length > 1 && (
+          <button
+            className="canvas-action-btn"
+            title="Find Connections"
+            onClick={() => onFindConnections()}
+            disabled={isFindingConnections}
+          >
+            {isFindingConnections ? 'Finding...' : '🔗 Find Connections'}
+          </button>
+        )}
+        {hasConnections && (
+          <button
+            className="canvas-action-btn"
+            title="Clean All Connections"
+            onClick={() => onClearConnections()}
+            style={{ color: '#ef4444' }}
+          >
+            🗑️ Clean Connections
+          </button>
+        )}
         <button
           className="canvas-action-btn"
           title="Add Note (Cmd+N)"
@@ -100,8 +138,8 @@ export const CanvasHeader: React.FC<CanvasHeaderProps> = ({ canvas, onCanvasChan
         >
           + Add Note
         </button>
-        <button 
-          className="canvas-action-btn" 
+        <button
+          className="canvas-action-btn"
           title="Export"
           onClick={() => setIsExportModalOpen(true)}
         >
