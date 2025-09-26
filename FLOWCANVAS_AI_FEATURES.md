@@ -1,5 +1,7 @@
 # 🤖 FlowCanvas AI Integration - Synthesis & Intelligence Layer
 
+**⚠️ Disclaimer:** This is just a compilation of possible AI-powered features to build on top on FlowCanvas!
+
 ## Overview
 
 Transform your FlowCanvas from a collection of information into actionable insights, summaries, and new understanding through AI-powered synthesis.
