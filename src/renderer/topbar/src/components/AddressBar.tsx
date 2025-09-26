@@ -1,62 +1,48 @@
 import React, { useState, useEffect } from 'react'
-import { ArrowLeft, ArrowRight, RefreshCw, Loader2, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { ArrowLeft, ArrowRight, RefreshCw, Loader2, PanelLeftClose, PanelLeft, Waves } from 'lucide-react'
 import { useBrowser } from '../contexts/BrowserContext'
 import { ToolBarButton } from '../components/ToolBarButton'
 import { Favicon } from '../components/Favicon'
 import { DarkModeToggle } from '../components/DarkModeToggle'
 import { cn } from '@common/lib/utils'
-
 export const AddressBar: React.FC = () => {
     const { activeTab, navigateToUrl, goBack, goForward, reload, isLoading } = useBrowser()
     const [url, setUrl] = useState('')
     const [isEditing, setIsEditing] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
-    // Update URL when active tab changes
     useEffect(() => {
         if (activeTab && !isEditing) {
             setUrl(activeTab.url || '')
         }
     }, [activeTab, isEditing])
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (!url.trim()) return
-
         let finalUrl = url.trim()
-
-        // Add protocol if missing
         if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-            // Check if it looks like a domain
             if (finalUrl.includes('.') && !finalUrl.includes(' ')) {
                 finalUrl = `https://${finalUrl}`
             } else {
-                // Treat as search query
                 finalUrl = `https://www.google.com/search?q=${encodeURIComponent(finalUrl)}`
             }
         }
-
         navigateToUrl(finalUrl)
         setIsEditing(false)
         setIsFocused(false)
             ; (document.activeElement as HTMLElement)?.blur()
     }
-
     const handleFocus = () => {
         setIsEditing(true)
         setIsFocused(true)
     }
-
     const handleBlur = () => {
         setIsEditing(false)
         setIsFocused(false)
-        // Reset to current tab URL if editing was cancelled
         if (activeTab) {
             setUrl(activeTab.url || '')
         }
     }
-
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             setIsEditing(false)
@@ -67,11 +53,8 @@ export const AddressBar: React.FC = () => {
             ; (e.target as HTMLInputElement).blur()
         }
     }
-
     const canGoBack = activeTab !== null
     const canGoForward = activeTab !== null
-
-    // Extract domain and title for display
     const getDomain = () => {
         if (!activeTab?.url) return ''
         try {
@@ -81,7 +64,6 @@ export const AddressBar: React.FC = () => {
             return activeTab.url
         }
     }
-
     const getPath = () => {
         if (!activeTab?.url) return ''
         try {
@@ -91,28 +73,23 @@ export const AddressBar: React.FC = () => {
             return ''
         }
     }
-
     const getFavicon = () => {
         if (!activeTab?.url) return null
         try {
             const domain = new URL(activeTab.url).hostname
-            return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+            return `https://favicon.margostino.com/${domain}`
         } catch {
             return null
         }
     }
-
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen)
-        // Send IPC event to toggle sidebar
         if (window.topBarAPI) {
             window.topBarAPI.toggleSidebar()
         }
     }
-
     return (
         <>
-            {/* Navigation Controls */}
             <div className="flex gap-1.5 app-region-no-drag">
                 <ToolBarButton
                     Icon={ArrowLeft}
@@ -135,10 +112,7 @@ export const AddressBar: React.FC = () => {
                     )}
                 </ToolBarButton>
             </div>
-
-            {/* Address Bar */}
             {isFocused ? (
-                // Expanded State
                 <form onSubmit={handleSubmit} className="flex-1 min-w-0 max-w-full">
                     <div className="bg-background rounded-lg shadow-md p-1 dark:bg-secondary">
                         <input
@@ -157,7 +131,6 @@ export const AddressBar: React.FC = () => {
                     </div>
                 </form>
             ) : (
-                // Collapsed State
                 <div
                     onClick={handleFocus}
                     className={cn(
@@ -168,12 +141,9 @@ export const AddressBar: React.FC = () => {
                     )}
                 >
                     <div className="flex h-full items-center">
-                        {/* Favicon */}
                         <div className="size-4 mr-2">
                             <Favicon src={getFavicon()} />
                         </div>
-
-                        {/* URL Display */}
                         <div className="text-[0.8rem] leading-normal truncate flex-1">
                             {activeTab ? (
                                 <>
@@ -189,13 +159,24 @@ export const AddressBar: React.FC = () => {
                                 <span className="text-muted-foreground">No active tab</span>
                             )}
                         </div>
-
                     </div>
                 </div>
             )}
-
-            {/* Actions Menu */}
             <div className="flex items-center gap-1 app-region-no-drag">
+                <div className="relative group">
+                    <ToolBarButton
+                        Icon={Waves}
+                        onClick={() => {
+                            if (window.topBarAPI) {
+                                window.topBarAPI.createTab('blueberry://flowcanvas')
+                            }
+                        }}
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    />
+                    <div className="absolute top-full mt-2 right-0 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                        FlowCanvas ({navigator.platform.includes('Mac') ? '⌘⇧F' : 'Ctrl+Shift+F'})
+                    </div>
+                </div>
                 <DarkModeToggle />
                 <ToolBarButton
                     Icon={isSidebarOpen ? PanelLeftClose : PanelLeft}

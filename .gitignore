@@ -134,3 +134,7 @@ logs/
 *.pem
 *.key
 *.cert
+
+### Claude
+.claude/
+.serena/

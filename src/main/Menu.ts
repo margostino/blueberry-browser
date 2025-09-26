@@ -1,14 +1,11 @@
 import { Menu, app } from "electron";
 import type { Window } from "./Window";
-
 export class AppMenu {
   private mainWindow: Window;
-
   constructor(mainWindow: Window) {
     this.mainWindow = mainWindow;
     this.createMenu();
   }
-
   private createMenu(): void {
     const template: Electron.MenuItemConstructorOptions[] = [
       {
@@ -98,56 +95,45 @@ export class AppMenu {
         ],
       },
     ];
-
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
   }
-
-  // Menu action handlers
   private handleNewTab(): void {
-    this.mainWindow.createTab("https://www.google.com");
+    this.mainWindow.createTab("https://margostino.com");
   }
-
   private handleCloseTab(): void {
     if (this.mainWindow.activeTab) {
       this.mainWindow.closeTab(this.mainWindow.activeTab.id);
     }
   }
-
   private handleReload(): void {
     if (this.mainWindow.activeTab) {
       this.mainWindow.activeTab.reload();
     }
   }
-
   private handleForceReload(): void {
     if (this.mainWindow.activeTab) {
       this.mainWindow.activeTab.webContents.reloadIgnoringCache();
     }
   }
-
   private handleToggleSidebar(): void {
     this.mainWindow.sidebar.toggle();
     this.mainWindow.updateAllBounds();
   }
-
   private handleToggleDevTools(): void {
     if (this.mainWindow.activeTab) {
       this.mainWindow.activeTab.webContents.toggleDevTools();
     }
   }
-
   private handleToggleFullscreen(): void {
     const isFullScreen = this.mainWindow.baseWindow.isFullScreen();
     this.mainWindow.baseWindow.setFullScreen(!isFullScreen);
   }
-
   private handleGoBack(): void {
     if (this.mainWindow.activeTab) {
       this.mainWindow.activeTab.goBack();
     }
   }
-
   private handleGoForward(): void {
     if (this.mainWindow.activeTab) {
       this.mainWindow.activeTab.goForward();

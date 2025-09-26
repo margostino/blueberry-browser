@@ -1,7 +1,6 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "../../../common/lib/utils";
-
 interface ToolBarButtonProps {
     Icon?: LucideIcon;
     active?: boolean;
@@ -10,7 +9,6 @@ interface ToolBarButtonProps {
     children?: React.ReactNode;
     className?: string;
 }
-
 export const ToolBarButton: React.FC<ToolBarButtonProps> = ({
     Icon,
     active = true,

@@ -1,6 +1,6 @@
-import { resolve } from "path";
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { resolve } from "path";
 
 export default defineConfig({
   main: {
@@ -13,6 +13,11 @@ export default defineConfig({
         input: {
           topbar: resolve(__dirname, "src/preload/topbar.ts"),
           sidebar: resolve(__dirname, "src/preload/sidebar.ts"),
+          flowcanvas: resolve(__dirname, "src/preload/flowcanvas.ts"),
+          "screenshot-selector": resolve(
+            __dirname,
+            "src/preload/screenshot-selector.ts"
+          ),
         },
       },
     },
@@ -24,6 +29,7 @@ export default defineConfig({
         input: {
           topbar: resolve(__dirname, "src/renderer/topbar/index.html"),
           sidebar: resolve(__dirname, "src/renderer/sidebar/index.html"),
+          flowcanvas: resolve(__dirname, "src/renderer/flowcanvas/index.html"),
         },
       },
     },
@@ -35,6 +41,8 @@ export default defineConfig({
     },
     plugins: [react()],
     server: {
+      port: 5173,
+      strictPort: false,
       fs: {
         allow: [".."],
       },

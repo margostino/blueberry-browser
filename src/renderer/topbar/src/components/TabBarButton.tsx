@@ -1,13 +1,11 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "../../../common/lib/utils";
-
 interface TabBarButtonProps {
     Icon: LucideIcon;
     onClick?: () => void;
     className?: string;
 }
-
 export const TabBarButton: React.FC<TabBarButtonProps> = ({ Icon, onClick, className }) => {
     return (
         <div

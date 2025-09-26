@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Screenshot Selector</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    #selection {
+      position: absolute;
+      border: 2px solid #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+      display: none;
+    }
+
+    #selection.active {
+      display: block;
+    }
+
+    .dimension-info {
+      position: absolute;
+      bottom: -25px;
+      right: 0;
+      background: #3b82f6;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      white-space: nowrap;
+    }
+
+    .instructions {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      z-index: 10000;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 10000;
+    }
+
+    .controls.hidden {
+      display: none;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    button.capture {
+      background: #3b82f6;
+      color: white;
+    }
+
+    button.capture:hover {
+      background: #2563eb;
+    }
+
+    button.cancel {
+      background: #6b7280;
+      color: white;
+    }
+
+    button.cancel:hover {
+      background: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay"></div>
+  <div id="selection">
+    <div class="dimension-info"></div>
+  </div>
+  <div class="instructions">
+    Drag to select area • Press ESC to cancel
+  </div>
+  <div class="controls hidden">
+    <button class="cancel" onclick="cancelSelection()">Cancel</button>
+    <button class="capture" onclick="captureSelection()">Capture</button>
+  </div>
+  <script src="./selector.js"></script>
+</body>
+</html>
