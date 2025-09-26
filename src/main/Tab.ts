@@ -12,6 +12,7 @@ export class Tab {
     const isFlowCanvas = url.includes("flowcanvas");
     this.webContentsView = new WebContentsView({
       webPreferences: {
+        partition: `persist:tab-${Date.now()}`,
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: !isFlowCanvas,
