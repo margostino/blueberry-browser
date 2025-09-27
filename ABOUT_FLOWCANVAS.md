@@ -1,7 +1,9 @@
 # FlowCanvas: Visual Knowledge Workspace for Web Browsing
 
 <div align="center">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/ro3El9izLP8" title="FlowCanvas Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[![FlowCanvas Demo Video](https://img.youtube.com/vi/ro3El9izLP8/0.jpg)](https://www.youtube.com/watch?v=ro3El9izLP8)
+
 </div>
 
 ## 🎯 The Problem FlowCanvas solves
