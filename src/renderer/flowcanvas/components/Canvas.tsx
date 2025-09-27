@@ -4,6 +4,7 @@ import { Connection, FlowCanvas, FlowItem } from '../../../shared/types/flowcanv
 import { useDragDrop } from '../hooks/useDragDrop';
 import { CanvasItem } from './CanvasItem';
 import { ConnectionCanvas } from './ConnectionCanvas';
+import EditItemModal from './EditItemModal';
 interface CanvasProps {
   canvas: FlowCanvas;
   onItemUpdate: (item: FlowItem) => void;
@@ -31,6 +32,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [editModalItem, setEditModalItem] = useState<FlowItem | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { handleDragStart, handleDragEnd } = useDragDrop();
   useEffect(() => {
     const handleItemCaptured = (_event: any, item: FlowItem) => {
@@ -79,11 +82,35 @@ export const Canvas: React.FC<CanvasProps> = ({
   const handleConnectionDelete = useCallback((connectionId: string) => {
     const updatedCanvas = {
       ...canvas,
-      connections: (canvas.connections || []).filter(c => c.id !== connectionId),
-      modified: Date.now()
+      connections: canvas.connections.filter(c => c.id !== connectionId)
     };
     onCanvasUpdate(updatedCanvas);
   }, [canvas, onCanvasUpdate]);
+
+  const handleItemDoubleClick = useCallback((item: FlowItem) => {
+    if (item.type === 'text') {
+      setEditModalItem(item);
+      setIsEditModalOpen(true);
+    } else if (item.source.url && !item.source.url.startsWith('note://')) {
+      window.open(item.source.url, '_blank');
+    }
+  }, []);
+
+  const handleEditModalSave = useCallback((itemId: string, newContent: string) => {
+    const item = canvas.items.find(i => i.id === itemId);
+    if (item) {
+      const updatedItem = {
+        ...item,
+        content: newContent
+      };
+      onItemUpdate(updatedItem);
+    }
+  }, [canvas.items, onItemUpdate]);
+
+  const handleEditModalClose = useCallback(() => {
+    setIsEditModalOpen(false);
+    setEditModalItem(null);
+  }, []);
   const pointToLineDistance = (
     point: { x: number; y: number },
     lineStart: { x: number; y: number },
@@ -473,9 +500,16 @@ export const Canvas: React.FC<CanvasProps> = ({
             onDragEnd={handleItemDragEnd}
             onUpdate={onItemUpdate}
             onDelete={onItemDelete}
+            onDoubleClick={handleItemDoubleClick}
           />
         ))}
       </div>
+      <EditItemModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        item={editModalItem}
+        onSave={handleEditModalSave}
+      />
     </div>
   );
 };

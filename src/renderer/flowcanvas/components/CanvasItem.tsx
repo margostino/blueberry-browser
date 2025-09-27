@@ -10,6 +10,7 @@ interface CanvasItemProps {
   onDragEnd: (item: FlowItem, position: { x: number; y: number }) => void;
   onUpdate: (item: FlowItem) => void;
   onDelete: (itemId: string) => void;
+  onDoubleClick?: (item: FlowItem) => void;
 }
 export const CanvasItem: React.FC<CanvasItemProps> = ({
   item,
@@ -20,7 +21,8 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
   onDragStart,
   onDragEnd,
   onUpdate,
-  onDelete
+  onDelete,
+  onDoubleClick
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -91,10 +93,12 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
     return undefined;
   }, [isDragging, handleMouseMove, handleMouseUp]);
   const handleDoubleClick = useCallback(() => {
-    if (item.source.url && !item.source.url.startsWith('note://')) {
+    if (onDoubleClick) {
+      onDoubleClick(item);
+    } else if (item.source.url && !item.source.url.startsWith('note://')) {
       window.open(item.source.url, '_blank');
     }
-  }, [item.source.url]);
+  }, [item, onDoubleClick]);
   const handleResizeMouseDown = useCallback((e: React.MouseEvent, handle: string) => {
     e.preventDefault();
     e.stopPropagation();
