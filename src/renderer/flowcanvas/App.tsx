@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Canvas } from './components/Canvas';
 import { CanvasHeader } from './components/CanvasHeader';
 import { PromptModal } from './components/PromptModal';
+import { LoadingOverlay } from './components/LoadingOverlay';
 import { useCanvas } from './hooks/useCanvas';
 import './styles/flowcanvas.css';
 
@@ -152,6 +153,10 @@ Example (no connection):
         onClose={() => setIsPromptModalOpen(false)}
         onConfirm={handlePromptConfirm}
         defaultPrompt={defaultPrompt}
+      />
+      <LoadingOverlay 
+        isVisible={isFindingConnections}
+        message={isFindingConnections ? "Analyzing relationships and discovering connections..." : undefined}
       />
     </div>
   );

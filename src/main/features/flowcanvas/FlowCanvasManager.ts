@@ -18,6 +18,7 @@ export class FlowCanvasManager {
   private activeCanvas: FlowCanvas | null = null;
   private contextMenuHandler: FlowCanvasContextMenuHandler;
   private llmClient: LLMClient | null = null;
+  private mainWindow: any = null; // Reference to Window instance
   constructor() {
     this.storage = new FlowCanvasStorage();
     this.contextMenuHandler = new FlowCanvasContextMenuHandler(this);
@@ -26,6 +27,11 @@ export class FlowCanvasManager {
   public setLLMClient(client: LLMClient): void {
     this.llmClient = client;
     logger.info("LLM client set for FlowCanvasManager");
+  }
+  
+  public setMainWindow(window: any): void {
+    this.mainWindow = window;
+    logger.info("Main window set for FlowCanvasManager");
   }
   private setupIPCHandlers(): void {
     ipcMain.handle("flowcanvas:create", async () => {
@@ -117,6 +123,9 @@ export class FlowCanvasManager {
       source: request.source.title,
       url: request.source.url,
     });
+    
+    // Check if FlowCanvas is open, if not, open it
+    await this.ensureFlowCanvasIsOpen();
     let dimensions = { width: 280, height: 150 };
     if (request.type === "image") {
       dimensions = { width: 320, height: 240 };
@@ -185,6 +194,34 @@ export class FlowCanvasManager {
   }
   private async openCanvasTab(): Promise<string> {
     return "blueberry://flowcanvas";
+  }
+  
+  private async ensureFlowCanvasIsOpen(): Promise<void> {
+    if (!this.mainWindow) {
+      logger.warn("Main window not set, cannot ensure FlowCanvas is open");
+      return;
+    }
+    
+    // Check if FlowCanvas tab already exists
+    const flowCanvasTab = this.mainWindow.allTabs.find(
+      (tab: any) =>
+        tab.url.includes("flowcanvas") ||
+        tab.url.includes("localhost:5173/flowcanvas")
+    );
+    
+    if (!flowCanvasTab) {
+      // FlowCanvas not open, create it in background
+      logger.info("FlowCanvas not open, creating new tab in background");
+      const newTab = this.mainWindow.createTab("blueberry://flowcanvas");
+      
+      // Don't switch to it - stay on current tab
+      if (newTab) {
+        logger.info("FlowCanvas tab created in background");
+      }
+    } else {
+      // FlowCanvas already exists, no need to do anything
+      logger.info("FlowCanvas already open in background");
+    }
   }
   private async findConnections(
     canvas: FlowCanvas,

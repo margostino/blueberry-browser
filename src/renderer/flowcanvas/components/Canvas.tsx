@@ -426,6 +426,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           connectionStartPoint={connectionStartPoint}
           mousePosition={mousePosition}
           tempItemPositions={tempItemPositions}
+          zoom={zoom}
+          pan={pan}
         />
         {canvas.items.length === 0 && (
           <div style={{

@@ -10,26 +10,32 @@ interface ConnectionCanvasProps {
   connectionStartPoint: { x: number; y: number } | null;
   mousePosition: { x: number; y: number };
   tempItemPositions?: Map<string, { x: number; y: number }>;
+  zoom?: number;
+  pan?: { x: number; y: number };
+  onOpenReasonModal?: (connection: Connection) => void;
 }
 export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
   items,
   connections = [],
-  onConnectionDelete,
   isCreatingConnection,
   connectionStartPoint,
   mousePosition,
-  tempItemPositions = new Map()
+  tempItemPositions = new Map(),
+  zoom = 1,
+  pan = { x: 0, y: 0 },
+  onOpenReasonModal
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modalConnection, setModalConnection] = useState<Connection | null>(null);
+  const [hoveredConnectionId, setHoveredConnectionId] = useState<string | null>(null);
   const connectionTextBoundsRef = useRef<Map<string, { x: number; y: number; width: number; height: number }>>(new Map());
   const getItemCenter = (itemId: string) => {
     const item = items.find(i => i.id === itemId);
     if (!item) return null;
-    
+
     // Use temporary position if item is being dragged
     const position = tempItemPositions.get(itemId) || item.position;
-    
+
     return {
       x: position.x + item.dimensions.width / 2,
       y: position.y + item.dimensions.height / 2
@@ -141,21 +147,23 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
 
         // Store bounds for click detection if it's clickable
         if (isClickable && connection) {
+          // Make the clickable area larger for easier interaction
+          const clickPadding = 10;
           boundsMap.set(connection.id, {
-            x: rectX,
-            y: rectY,
-            width: rectWidth,
-            height: rectHeight + 15 // Include "click to expand" text area
+            x: rectX - clickPadding,
+            y: rectY - clickPadding,
+            width: rectWidth + clickPadding * 2,
+            height: rectHeight + 25 + clickPadding // Include "click to expand" text area + padding
           });
         }
 
         // Draw semi-transparent background
-        ctx.fillStyle = isClickable ? 'rgba(245, 240, 255, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.fillStyle = isClickable ? 'rgba(245, 240, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)';
         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
 
-        // Draw border
+        // Draw border with thicker line for clickable items
         ctx.strokeStyle = connection.metadata?.mode === 'similarity' ? '#10b981' : '#8b5cf6';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = isClickable ? 1.5 : 1;
         ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
 
         // Draw text
@@ -164,11 +172,22 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
         ctx.textBaseline = 'middle';
         ctx.fillText(displayText, midX, midY);
 
-        // Add click hint for LLM connections
+        // Add click hint for LLM connections with better styling
         if (isClickable) {
-          ctx.font = '10px sans-serif';
+          ctx.font = 'italic 10px sans-serif';
           ctx.fillStyle = '#8b5cf6';
           ctx.fillText('(click to expand)', midX, midY + 14);
+
+          // Add subtle underline effect on the main text
+          const textY = midY + 2;
+          ctx.strokeStyle = '#8b5cf6';
+          ctx.lineWidth = 0.5;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.moveTo(midX - textWidth / 2, textY);
+          ctx.lineTo(midX + textWidth / 2, textY);
+          ctx.stroke();
+          ctx.setLineDash([]);
         }
 
         // Reset line width for next drawing
@@ -216,79 +235,6 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
       drawConnection(ctx, connectionStartPoint, mousePosition);
     }
   }, [items, connections, isCreatingConnection, connectionStartPoint, mousePosition, tempItemPositions]);
-  const handleClick = (e: React.MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-
-    // Check if click is on an AI connection text
-    for (const [connectionId, bounds] of connectionTextBoundsRef.current.entries()) {
-      if (clickX >= bounds.x &&
-          clickX <= bounds.x + bounds.width &&
-          clickY >= bounds.y &&
-          clickY <= bounds.y + bounds.height) {
-        const connection = connections.find(c => c.id === connectionId);
-        if (connection?.metadata?.mode === 'llm' && connection.metadata.reason) {
-          console.log('Opening modal for AI connection:', connection.metadata.reason.substring(0, 50));
-          setModalConnection(connection);
-          return;
-        }
-      }
-    }
-
-    // Original connection delete logic
-    if (onConnectionDelete && connections.length > 0) {
-      connections.forEach(connection => {
-        // Always calculate from item centers
-        const from = getItemCenter(connection.from);
-        const to = getItemCenter(connection.to);
-        if (from && to) {
-          const dist = pointToLineDistance(
-            { x: clickX, y: clickY },
-            from,
-            to
-          );
-          if (dist < 10) {
-            if (e.shiftKey || e.metaKey) {
-              onConnectionDelete(connection.id);
-            }
-          }
-        }
-      });
-    }
-  };
-  const pointToLineDistance = (
-    point: { x: number; y: number },
-    lineStart: { x: number; y: number },
-    lineEnd: { x: number; y: number }
-  ): number => {
-    const A = point.x - lineStart.x;
-    const B = point.y - lineStart.y;
-    const C = lineEnd.x - lineStart.x;
-    const D = lineEnd.y - lineStart.y;
-    const dot = A * C + B * D;
-    const lenSq = C * C + D * D;
-    let param = -1;
-    if (lenSq !== 0) {
-      param = dot / lenSq;
-    }
-    let xx, yy;
-    if (param < 0) {
-      xx = lineStart.x;
-      yy = lineStart.y;
-    } else if (param > 1) {
-      xx = lineEnd.x;
-      yy = lineEnd.y;
-    } else {
-      xx = lineStart.x + param * C;
-      yy = lineStart.y + param * D;
-    }
-    const dx = point.x - xx;
-    const dy = point.y - yy;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
 
   const getFromItemTitle = () => {
     if (!modalConnection) return '';
@@ -325,37 +271,73 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
           zIndex: 1
         }}
       />
-      {/* Invisible clickable overlays for connection text areas */}
-      {Array.from(connectionTextBoundsRef.current.entries()).map(([connectionId, bounds]) => {
-        const connection = connections.find(c => c.id === connectionId);
-        if (!connection?.metadata?.mode || connection.metadata.mode !== 'llm') return null;
+      {/* Container for clickable overlays with high z-index */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 1000  // High z-index to ensure it's above everything
+        }}
+      >
+        {Array.from(connectionTextBoundsRef.current.entries()).map(([connectionId, bounds]) => {
+          const connection = connections.find(c => c.id === connectionId);
+          if (!connection?.metadata?.mode || connection.metadata.mode !== 'llm') return null;
 
-        return (
-          <div
-            key={connectionId}
-            style={{
-              position: 'absolute',
-              left: bounds.x,
-              top: bounds.y,
-              width: bounds.width,
-              height: bounds.height,
-              cursor: 'pointer',
-              zIndex: 10,
-              pointerEvents: 'auto'
-            }}
-            onClick={() => {
-              console.log('Clicked on connection text area');
-              setModalConnection(connection);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          />
-        );
-      })}
+          const isHovered = hoveredConnectionId === connectionId;
+
+          return (
+            <div
+              key={connectionId}
+              className="connection-text-overlay"
+              style={{
+                position: 'absolute',
+                left: bounds.x * zoom + pan.x,
+                top: bounds.y * zoom + pan.y,
+                width: bounds.width * zoom,
+                height: bounds.height * zoom,
+                cursor: 'pointer',
+                pointerEvents: 'auto',  // Enable pointer events only for this overlay
+                background: isHovered ? 'rgba(139, 92, 246, 0.15)' : 'transparent',
+                border: isHovered ? '2px solid rgba(139, 92, 246, 0.5)' : '2px solid transparent',
+                borderRadius: '4px',
+                transition: 'all 0.15s ease',
+                zIndex: 1001  // Ensure it's above the container
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('Opening modal for connection:', connectionId);
+                if (onOpenReasonModal) {
+                  onOpenReasonModal(connection);
+                } else {
+                  setModalConnection(connection);
+                }
+              }}
+              onMouseEnter={(e) => {
+                e.stopPropagation();
+                setHoveredConnectionId(connectionId);
+              }}
+              onMouseLeave={(e) => {
+                e.stopPropagation();
+                setHoveredConnectionId(null);
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              title="Click to see full AI reasoning"
+            />
+          );
+        })}
+      </div>
+
       {/* Canvas overlay for creating connections */}
       {isCreatingConnection && (
-        <canvas
-          className="connection-creation-overlay"
-          onClick={handleClick}
+        <div
           style={{
             position: 'absolute',
             top: 0,
@@ -367,20 +349,6 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
           }}
         />
       )}
-      {/* Delete connection handler (shift/cmd + click) */}
-      <canvas
-        className="connection-delete-overlay"
-        onClick={handleClick}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 2
-        }}
-      />
       {modalConnection && (
         <ConnectionReasonModal
           isOpen={!!modalConnection}

@@ -37,6 +37,7 @@ export class Window {
     this.sideBarInstance = new SideBar(this.baseWindowInstance);
     this.sideBarInstance.client.setWindow(this);
     this.flowCanvasManager.setLLMClient(this.sideBarInstance.client);
+    this.flowCanvasManager.setMainWindow(this);
     this.createTab();
     this.baseWindowInstance.on("resize", () => {
       this.updateTabBounds();
