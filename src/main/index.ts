@@ -23,6 +23,9 @@ app.whenReady().then(() => {
   electronApp.setAppUserModelId("com.electron");
   mainWindow = createWindow();
   logger.endTimer('app-startup', 'Application startup complete');
+  
+  // Start clipboard watcher for automatic screenshot detection
+  flowCanvasManager?.startClipboardWatcher();
   const shortcut =
     process.platform === "darwin" ? "Cmd+Shift+F" : "Ctrl+Shift+F";
   const registered = globalShortcut.register(shortcut, () => {
@@ -46,6 +49,8 @@ app.whenReady().then(() => {
   } else {
     logger.info(`FlowCanvas keyboard shortcut registered: ${shortcut}`);
   }
+
+
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow();
@@ -54,6 +59,7 @@ app.whenReady().then(() => {
 });
 app.on("window-all-closed", () => {
   globalShortcut.unregisterAll();
+  flowCanvasManager?.stopClipboardWatcher();
   if (eventManager) {
     eventManager.cleanup();
     eventManager = null;

@@ -1,15 +1,13 @@
 import { Menu, MenuItem, WebContents, clipboard } from "electron";
 import { createLogger } from "../../services/Logger";
 import { FlowCanvasManager } from "./FlowCanvasManager";
-import { ScreenshotManager } from "./ScreenshotManager";
 const logger = createLogger({ module: "FlowCanvasContextMenu" });
 
 export class FlowCanvasContextMenuHandler {
   private flowCanvasManager: FlowCanvasManager;
-  private screenshotManager: ScreenshotManager;
+  
   constructor(flowCanvasManager: FlowCanvasManager) {
     this.flowCanvasManager = flowCanvasManager;
-    this.screenshotManager = new ScreenshotManager(flowCanvasManager);
   }
   setupContextMenu(webContents: WebContents): void {
     webContents.on("context-menu", (_, params) => {
@@ -54,7 +52,7 @@ export class FlowCanvasContextMenuHandler {
           click: async () => {
             logger.debug("🎯 Context menu: Capture Area clicked");
             try {
-              await this.screenshotManager.startSelectionMode(webContents);
+              await this.flowCanvasManager.getScreenshotManager().startSelectionMode(webContents);
             } catch (error) {
               logger.error(
                 "❌ Failed to start selection mode:",
@@ -72,7 +70,7 @@ export class FlowCanvasContextMenuHandler {
             logger.debug("📋 Context menu: Paste from Clipboard clicked");
             try {
               const success =
-                await this.screenshotManager.captureFromClipboard();
+                await this.flowCanvasManager.getScreenshotManager().captureFromClipboard();
               if (success) {
                 webContents.send("flowcanvas:item-added", {
                   success: true,

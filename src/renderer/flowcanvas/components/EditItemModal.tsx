@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlowItem } from '../../../shared/types/flowcanvas';
 import './EditItemModal.css';
 
@@ -58,7 +58,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, item, on
             <div className="item-source-info">
               <h3>{item.source.title}</h3>
               {item.source.url && !item.source.url.startsWith('note://') && (
-                <button 
+                <button
                   className="source-link-button"
                   onClick={handleSourceClick}
                   title="Open source in new window"
@@ -68,7 +68,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, item, on
                     <polyline points="15 3 21 3 21 9"></polyline>
                     <line x1="10" y1="14" x2="21" y2="3"></line>
                   </svg>
-                  <span>Open Source</span>
+                  <span></span>
                 </button>
               )}
             </div>
@@ -95,9 +95,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, item, on
           ) : (
             <div className="non-editable-content">
               {item.type === 'image' || item.type === 'screenshot' ? (
-                <img 
-                  src={item.thumbnail || item.content} 
-                  alt="Item content" 
+                <img
+                  src={item.thumbnail || item.content}
+                  alt="Item content"
                   className="preview-image"
                 />
               ) : (

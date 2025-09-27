@@ -1,37 +1,121 @@
 import type { WebContents } from "electron";
-import { BrowserWindow, ipcMain, webContents } from "electron";
+import { BrowserWindow, clipboard, ipcMain, webContents } from "electron";
 import { v4 as uuidv4 } from "uuid";
-import { createLogger } from "../../services/Logger";
 import {
   CaptureRequest,
   Connection,
   FlowCanvas,
   FlowItem,
 } from "../../../shared/types/flowcanvas";
+import { createLogger } from "../../services/Logger";
 import { LLMClient } from "../llm/LLMClient";
 import { FlowCanvasContextMenuHandler } from "./ContextMenuHandler";
 import { FlowCanvasStorage } from "./FlowCanvasStorage";
+import { ScreenshotManager } from "./ScreenshotManager";
 const logger = createLogger({ module: "FlowCanvasManager" });
 
 export class FlowCanvasManager {
   private storage: FlowCanvasStorage;
   private activeCanvas: FlowCanvas | null = null;
   private contextMenuHandler: FlowCanvasContextMenuHandler;
+  private screenshotManager: ScreenshotManager;
   private llmClient: LLMClient | null = null;
   private mainWindow: any = null;
+  private clipboardWatcher: NodeJS.Timeout | null = null;
+  private lastClipboardImage: string | null = null;
   constructor() {
     this.storage = new FlowCanvasStorage();
     this.contextMenuHandler = new FlowCanvasContextMenuHandler(this);
+    this.screenshotManager = new ScreenshotManager(this);
     this.setupIPCHandlers();
   }
   public setLLMClient(client: LLMClient): void {
     this.llmClient = client;
     logger.info("LLM client set for FlowCanvasManager");
   }
-  
+
   public setMainWindow(window: any): void {
     this.mainWindow = window;
     logger.info("Main window set for FlowCanvasManager");
+  }
+
+  public getScreenshotManager(): ScreenshotManager {
+    return this.screenshotManager;
+  }
+
+  public startClipboardWatcher(): void {
+    if (this.clipboardWatcher) {
+      return; // Already watching
+    }
+
+    logger.info(
+      "Starting clipboard watcher for automatic screenshot detection"
+    );
+
+    // Check clipboard every 500ms for new images
+    this.clipboardWatcher = setInterval(() => {
+      try {
+        const image = clipboard.readImage();
+
+        if (!image.isEmpty()) {
+          const dataURL = image.toDataURL();
+
+          // Check if this is a new image (not the same as last one)
+          if (dataURL !== this.lastClipboardImage && dataURL.length > 100) {
+            this.lastClipboardImage = dataURL;
+
+            // Get the active tab info for context
+            const activeTab = this.mainWindow?.activeTab;
+            const sourceUrl = activeTab?.url || "unknown";
+            const sourceTitle = activeTab?.title || "Screenshot";
+
+            // Automatically add to FlowCanvas
+            this.captureItem({
+              type: "screenshot",
+              content: dataURL,
+              source: {
+                url: sourceUrl,
+                title: `Screenshot from ${sourceTitle}`,
+              },
+            })
+              .then(() => {
+                logger.info(
+                  "Clipboard screenshot automatically added to FlowCanvas"
+                );
+
+                // Optional: Show a notification to the user
+                if (this.mainWindow?.activeTab) {
+                  this.mainWindow.activeTab.webContents.send(
+                    "flowcanvas:item-added",
+                    {
+                      success: true,
+                      type: "screenshot",
+                      fromClipboard: true,
+                      auto: true,
+                    }
+                  );
+                }
+              })
+              .catch((error) => {
+                logger.error(
+                  "Failed to auto-add clipboard screenshot",
+                  error as Error
+                );
+              });
+          }
+        }
+      } catch (error) {
+        // Silently ignore errors (clipboard might not have an image)
+      }
+    }, 500);
+  }
+
+  public stopClipboardWatcher(): void {
+    if (this.clipboardWatcher) {
+      clearInterval(this.clipboardWatcher);
+      this.clipboardWatcher = null;
+      logger.info("Stopped clipboard watcher");
+    }
   }
   private setupIPCHandlers(): void {
     ipcMain.handle("flowcanvas:create", async () => {
@@ -123,7 +207,7 @@ export class FlowCanvasManager {
       source: request.source.title,
       url: request.source.url,
     });
-    
+
     // Check if FlowCanvas is open, if not, open it
     await this.ensureFlowCanvasIsOpen();
     let dimensions = { width: 280, height: 150 };
@@ -195,25 +279,25 @@ export class FlowCanvasManager {
   private async openCanvasTab(): Promise<string> {
     return "blueberry://flowcanvas";
   }
-  
+
   private async ensureFlowCanvasIsOpen(): Promise<void> {
     if (!this.mainWindow) {
       logger.warn("Main window not set, cannot ensure FlowCanvas is open");
       return;
     }
-    
+
     // Check if FlowCanvas tab already exists
     const flowCanvasTab = this.mainWindow.allTabs.find(
       (tab: any) =>
         tab.url.includes("flowcanvas") ||
         tab.url.includes("localhost:5173/flowcanvas")
     );
-    
+
     if (!flowCanvasTab) {
       // FlowCanvas not open, create it in background
       logger.info("FlowCanvas not open, creating new tab in background");
       const newTab = this.mainWindow.createTab("blueberry://flowcanvas");
-      
+
       // Don't switch to it - stay on current tab
       if (newTab) {
         logger.info("FlowCanvas tab created in background");
@@ -282,13 +366,13 @@ export class FlowCanvasManager {
               metadata: {
                 mode,
                 similarityScore,
-                reason: connectionReason
-              }
+                reason: connectionReason,
+              },
             };
 
             connections.push(connection);
             processedPairs.add(pairKey);
-            
+
             // No longer creating NOTE items for either mode
             // Similarity shows inline text with percentage
             // LLM shows truncated text with modal for full content
