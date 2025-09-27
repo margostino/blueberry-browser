@@ -1,10 +1,10 @@
 import { electronApp } from "@electron-toolkit/utils";
 import { app, BrowserWindow, globalShortcut } from "electron";
-import { EventManager } from "./EventManager";
-import { FlowCanvasManager } from "./flowcanvas/FlowCanvasManager";
-import { AppMenu } from "./Menu";
-import { Window } from "./Window";
-import { createLogger } from "../services/Logger";
+import { EventManager } from "./services/EventManager";
+import { FlowCanvasManager } from "./features/flowcanvas/FlowCanvasManager";
+import { AppMenu } from "./core/Menu";
+import { Window } from "./core/Window";
+import { createLogger } from "./services/Logger";
 
 const logger = createLogger({ module: 'main' });
 let mainWindow: Window | null = null;

@@ -11,14 +11,14 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          topbar: resolve(__dirname, "src/preload/topbar.ts"),
-          sidebar: resolve(__dirname, "src/preload/sidebar.ts"),
-          flowcanvas: resolve(__dirname, "src/preload/flowcanvas.ts"),
+          topbar: resolve(__dirname, "src/preload/apis/topbar.ts"),
+          sidebar: resolve(__dirname, "src/preload/apis/sidebar.ts"),
+          flowcanvas: resolve(__dirname, "src/preload/apis/flowcanvas.ts"),
           "screenshot-selector": resolve(
             __dirname,
             "src/preload/screenshot-selector.ts"
           ),
-          tab: resolve(__dirname, "src/preload/tab.ts"),
+          tab: resolve(__dirname, "src/preload/apis/tab.ts"),
         },
       },
     },
@@ -37,7 +37,7 @@ export default defineConfig({
     resolve: {
       alias: {
         "@renderer": resolve("src/renderer/src"),
-        "@common": resolve("src/renderer/common"),
+        "@common": resolve("src/shared"),
       },
     },
     plugins: [react()],
