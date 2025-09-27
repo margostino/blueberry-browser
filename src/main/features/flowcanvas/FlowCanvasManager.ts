@@ -215,6 +215,8 @@ export class FlowCanvasManager {
           let isConnected = false;
           let connectionReason = "";
 
+          let similarityScore: number | undefined;
+
           if (mode === "llm") {
             const llmResult = await this.analyzeConnectionWithLLM(
               item1,
@@ -226,6 +228,7 @@ export class FlowCanvasManager {
           } else {
             const similarity = this.calculateSimilarity(item1, item2);
             isConnected = similarity.score > 0.3;
+            similarityScore = similarity.score;
             connectionReason = similarity.reason;
           }
 
@@ -250,35 +253,43 @@ export class FlowCanvasManager {
               style: "solid",
               fromPoint,
               toPoint,
+              metadata: {
+                mode,
+                similarityScore,
+                reason: connectionReason
+              }
             };
 
             connections.push(connection);
             processedPairs.add(pairKey);
 
-            const notePosition = {
-              x: (fromPoint.x + toPoint.x) / 2 - 150,
-              y: (fromPoint.y + toPoint.y) / 2 - 50,
-            };
+            // Only create NOTE items for LLM mode
+            if (mode === "llm") {
+              const notePosition = {
+                x: (fromPoint.x + toPoint.x) / 2 - 150,
+                y: (fromPoint.y + toPoint.y) / 2 - 50,
+              };
 
-            const noteItem: FlowItem = {
-              id: uuidv4(),
-              type: "note",
-              content: connectionReason,
-              source: {
-                url: "note://local",
-                title: "Quick Note",
-                timestamp: Date.now(),
-              },
-              position: notePosition,
-              dimensions: {
-                width: 300,
-                height: 250,
-              },
-              color: "#fef3c7", // Yellow color like user notes
-            };
+              const noteItem: FlowItem = {
+                id: uuidv4(),
+                type: "note",
+                content: connectionReason,
+                source: {
+                  url: "note://local",
+                  title: "Quick Note",
+                  timestamp: Date.now(),
+                },
+                position: notePosition,
+                dimensions: {
+                  width: 300,
+                  height: 250,
+                },
+                color: "#fef3c7", // Yellow color like user notes
+              };
 
-            if (this.activeCanvas) {
-              this.activeCanvas.items.push(noteItem);
+              if (this.activeCanvas) {
+                this.activeCanvas.items.push(noteItem);
+              }
             }
           }
         }

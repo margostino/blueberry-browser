@@ -56,7 +56,7 @@ This is an Electron application with multiple renderer processes and windows, ea
 - **TopBar.ts**: Top bar window management (address bar, tab bar)
 - **SideBar.ts**: Sidebar window for AI chat interface
 - **LLMClient.ts**: AI integration (OpenAI/Anthropic)
-- **FlowCanvasManager**: Canvas feature for visual browsing history/workflow
+- **FlowCanvasManager.ts**: Visual knowledge workspace for capturing, organizing, and connecting web content with AI-powered insights
 
 #### Renderer Processes (`src/renderer/`)
 Three separate renderer processes, each with its own entry point:
@@ -72,10 +72,12 @@ Three separate renderer processes, each with its own entry point:
    - Context: `ChatContext.tsx` for chat state
 
 3. **FlowCanvas** (`src/renderer/flowcanvas/`)
-   - Visual canvas for browsing history and workflow visualization
+   - Visual knowledge workspace for capturing, organizing, and connecting web content
    - Entry: `index.html` → `main.tsx` → `App.tsx`
-   - Components: Canvas, CanvasItem, ConnectionCanvas
-   - Storage: Persistent canvas state via FlowCanvasStorage
+   - Core Components: Canvas, CanvasItem, ConnectionCanvas, ExportModal
+   - AI Features: Similarity analysis (🔗) and deep LLM-powered connection discovery (🤖)
+   - Storage: IndexedDB with auto-save, crash recovery, and export to Markdown/JSON
+   - Architecture: Clean Domain-Driven Design with Use Cases, Repositories, and DTOs
 
 #### Preload Scripts (`src/preload/`)
 Secure bridge between renderer and main processes:
@@ -93,7 +95,11 @@ Secure bridge between renderer and main processes:
 
 3. **Tab Management**: Tabs are WebContentsView instances with persistent partitions, managed by the Window class with unique IDs.
 
-4. **FlowCanvas Feature**: A visual browsing history/workflow system that can capture tab states, create connections between items, and persist canvas data.
+4. **FlowCanvas Feature**: A visual knowledge workspace that transforms chaotic browsing into organized knowledge:
+   - **Capture Methods**: Text selection, images, screenshots (full/area), quick notes
+   - **AI-Powered Connections**: Similarity analysis and LLM deep analysis for discovering relationships
+   - **Visual Organization**: Spatial layout, 6-color coding, resizable items, connection lines
+   - **Persistent Knowledge**: Auto-save to IndexedDB, survives crashes, exportable to Markdown/JSON
 
 ### Project Structure Conventions
 
@@ -110,8 +116,40 @@ Secure bridge between renderer and main processes:
 
 2. **Tab Preloading**: Tabs use a preload script (`tab.ts`) to safely extract page content and enable browser functionality.
 
-3. **Persistent Storage**: FlowCanvas uses local file storage for canvas state persistence.
+3. **Persistent Storage**: FlowCanvas uses IndexedDB for canvas state persistence with auto-save functionality.
 
 4. **AI Integration**: LLMClient supports both OpenAI and Anthropic APIs for chat functionality.
 
 5. **Screenshot Capture**: Integrated screenshot functionality for FlowCanvas items using Electron's desktopCapturer API.
+
+### FlowCanvas Keyboard Shortcuts
+
+| Action | Shortcut | Description |
+|--------|----------|-------------|
+| Open Canvas | `Cmd/Ctrl+Shift+F` | Access FlowCanvas from anywhere |
+| New Note | `N` | Add quick note on canvas |
+| Connect Items | `C` | Start connection mode |
+| Delete | `Delete` | Remove selected items |
+| Find Connections | `Cmd+L` | AI analyze relationships |
+| Full Screenshot | `Cmd+Shift+S` | Capture full page |
+| Area Screenshot | `Cmd+Shift+A` | Capture selected area |
+
+### FlowCanvas Feature Status
+
+**Current Version**: 1.1.0 (November 2024)
+
+**Completed Features**:
+- Visual canvas system with drag & drop, zoom, pan
+- Multi-content capture (text, images, screenshots, notes)
+- 6-color theming system for categorization
+- AI-powered connection discovery:
+  - 🔗 Similarity Analysis: Fast local keyword/topic analysis
+  - 🤖 AI Deep Analysis: LLM-powered semantic relationships
+- Auto-save with crash recovery
+- Export to Markdown and JSON formats
+- Clean Architecture with Domain-Driven Design patterns
+
+**In Progress** (v2.0):
+- AI synthesis and summarization features
+- Smart organization and clustering
+- Enhanced capture capabilities

@@ -32,7 +32,12 @@ export interface Connection {
   label?: string;
   style?: 'solid' | 'dashed' | 'dotted';
   fromPoint?: { x: number; y: number };  
-  toPoint?: { x: number; y: number };    
+  toPoint?: { x: number; y: number };
+  metadata?: {
+    mode?: 'similarity' | 'llm';
+    similarityScore?: number;
+    reason?: string;
+  };
 }
 export interface FlowCanvas {
   id: string;

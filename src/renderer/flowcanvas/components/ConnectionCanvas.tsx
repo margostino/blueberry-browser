@@ -81,16 +81,56 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
       to.y - arrowLength * Math.sin(angle + arrowAngle)
     );
     ctx.stroke();
-    if (connection?.label) {
+    // Display label for connections or similarity info with percentage
+    if (connection?.label || connection?.metadata) {
       const midX = (from.x + to.x) / 2;
       const midY = (from.y + to.y) / 2;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(midX - 30, midY - 10, 60, 20);
-      ctx.fillStyle = '#333333';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(connection.label, midX, midY);
+      
+      let displayText = connection.label || '';
+      
+      // For similarity connections, show reason and percentage
+      if (connection.metadata?.mode === 'similarity' && connection.metadata?.reason) {
+        const percentage = connection.metadata.similarityScore 
+          ? Math.round(connection.metadata.similarityScore * 100) 
+          : 0;
+        displayText = `${connection.metadata.reason} (${percentage}% match)`;
+      }
+      
+      if (displayText) {
+        // Calculate text metrics for background
+        ctx.font = '12px sans-serif';
+        const textMetrics = ctx.measureText(displayText);
+        const textWidth = textMetrics.width;
+        const padding = 8;
+        
+        // Draw semi-transparent background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.fillRect(
+          midX - textWidth / 2 - padding,
+          midY - 10,
+          textWidth + padding * 2,
+          20
+        );
+        
+        // Draw border
+        ctx.strokeStyle = connection.metadata?.mode === 'similarity' ? '#10b981' : '#8b5cf6';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          midX - textWidth / 2 - padding,
+          midY - 10,
+          textWidth + padding * 2,
+          20
+        );
+        
+        // Draw text
+        ctx.fillStyle = '#333333';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(displayText, midX, midY);
+        
+        // Reset line width for next drawing
+        ctx.lineWidth = 2;
+      }
     }
   };
   useEffect(() => {
