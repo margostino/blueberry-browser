@@ -2,7 +2,9 @@
 
 <div align="center">
 
-[![FlowCanvas Demo Video](https://img.youtube.com/vi/ro3El9izLP8/0.jpg)](https://www.youtube.com/watch?v=ro3El9izLP8)
+<a href="https://www.youtube.com/watch?v=ro3El9izLP8" target="_blank">
+  <img src="https://img.youtube.com/vi/ro3El9izLP8/0.jpg" alt="FlowCanvas Demo Video" />
+</a>
 
 </div>
 
@@ -259,3 +261,12 @@ We're building toward a future where:
 ---
 
 *FlowCanvas: Because great ideas shouldn't die in closed tabs.*
+
+---
+
+## 📚 Related Documentation
+
+For more detailed information about FlowCanvas:
+
+- **[FLOWCANVAS_ROADMAP.md](./FLOWCANVAS_ROADMAP.md)** - Future development plans and upcoming features
+- **[IMPROVEMENTS.md](./IMPROVEMENTS.md)** - Technical improvements and optimization opportunities
