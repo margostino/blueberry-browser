@@ -1,8 +1,3 @@
-/**
- * FlowCanvas Use Cases
- * Application layer orchestration of business logic
- */
-
 import { IFlowCanvasRepository } from '../../domain/repositories/IFlowCanvasRepository';
 import { FlowCanvas } from '../../domain/entities/FlowCanvas';
 import { FlowItem } from '../../domain/entities/FlowItem';
@@ -23,9 +18,6 @@ export class FlowCanvasUseCases {
     private readonly repository: IFlowCanvasRepository
   ) {}
 
-  /**
-   * Create a new canvas
-   */
   async createCanvas(request: CreateCanvasRequestDTO): Promise<CanvasResponseDTO> {
     try {
       const name = request.name
@@ -51,9 +43,6 @@ export class FlowCanvasUseCases {
     }
   }
 
-  /**
-   * Get canvas by ID
-   */
   async getCanvas(canvasId: string): Promise<CanvasResponseDTO> {
     try {
       const canvas = await this.repository.findById(new CanvasId(canvasId));
@@ -77,22 +66,15 @@ export class FlowCanvasUseCases {
     }
   }
 
-  /**
-   * Get all canvases
-   */
   async getAllCanvases(): Promise<FlowCanvasDTO[]> {
     const canvases = await this.repository.findAll();
     return FlowCanvasMapper.toDTOList(canvases);
   }
 
-  /**
-   * Get active canvas
-   */
   async getActiveCanvas(): Promise<CanvasResponseDTO> {
     try {
       let canvas = await this.repository.findActive();
 
-      // Create a new canvas if none exists
       if (!canvas) {
         canvas = new FlowCanvas({
           name: CanvasName.createDefault()
@@ -112,12 +94,8 @@ export class FlowCanvasUseCases {
     }
   }
 
-  /**
-   * Update canvas
-   */
   async updateCanvas(request: UpdateCanvasRequestDTO): Promise<CanvasResponseDTO> {
     try {
-      // Validate the update request
       const validationResult = FlowCanvasValidator.safeValidateCanvas(request);
       if (!validationResult.success) {
         return {
@@ -135,7 +113,6 @@ export class FlowCanvasUseCases {
         };
       }
 
-      // Apply updates
       if (request.name) {
         canvas.rename(new CanvasName(request.name));
       }
@@ -148,7 +125,6 @@ export class FlowCanvasUseCases {
         canvas.setViewport(request.viewport.x, request.viewport.y);
       }
 
-      // Save updated canvas
       await this.repository.save(canvas);
 
       return {
@@ -163,9 +139,6 @@ export class FlowCanvasUseCases {
     }
   }
 
-  /**
-   * Delete canvas
-   */
   async deleteCanvas(canvasId: string): Promise<CanvasResponseDTO> {
     try {
       const id = new CanvasId(canvasId);
@@ -191,9 +164,6 @@ export class FlowCanvasUseCases {
     }
   }
 
-  /**
-   * Add item to canvas
-   */
   async addItemToCanvas(canvasId: string, item: FlowItem): Promise<CanvasResponseDTO> {
     try {
       const canvas = await this.repository.findById(new CanvasId(canvasId));

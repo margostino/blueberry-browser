@@ -1,8 +1,3 @@
-/**
- * IndexedDB Implementation of FlowCanvas Repository
- * Concrete implementation for browser storage
- */
-
 import { IFlowCanvasRepository } from '../../domain/repositories/IFlowCanvasRepository';
 import { FlowCanvas } from '../../domain/entities/FlowCanvas';
 import { CanvasId } from '../../domain/value-objects/CanvasId';
@@ -34,7 +29,6 @@ export class IndexedDBFlowCanvasRepository implements IFlowCanvasRepository {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // Create canvases store
         if (!db.objectStoreNames.contains(FLOWCANVAS_DB.STORES.CANVASES)) {
           const canvasStore = db.createObjectStore(FLOWCANVAS_DB.STORES.CANVASES, {
             keyPath: 'id'
@@ -44,7 +38,6 @@ export class IndexedDBFlowCanvasRepository implements IFlowCanvasRepository {
           canvasStore.createIndex('name', 'name', { unique: false });
         }
 
-        // Create preferences store
         if (!db.objectStoreNames.contains(FLOWCANVAS_DB.STORES.PREFERENCES)) {
           db.createObjectStore(FLOWCANVAS_DB.STORES.PREFERENCES, { keyPath: 'key' });
         }
@@ -67,7 +60,6 @@ export class IndexedDBFlowCanvasRepository implements IFlowCanvasRepository {
     return new Promise((resolve, reject) => {
       const request = store.put(dto);
       request.onsuccess = () => {
-        // Update active canvas ID
         this.setActiveCanvasId(canvas.id.value);
         resolve();
       };
@@ -89,7 +81,6 @@ export class IndexedDBFlowCanvasRepository implements IFlowCanvasRepository {
             const canvas = FlowCanvasMapper.toDomain(dto);
             resolve(canvas);
           } catch (error) {
-            // Handle corrupted data
             console.error('Failed to map canvas from storage:', error);
             resolve(null);
           }
@@ -153,7 +144,6 @@ export class IndexedDBFlowCanvasRepository implements IFlowCanvasRepository {
       return await this.findById(new CanvasId(activeId));
     }
 
-    // If no active canvas, return the most recent
     const allCanvases = await this.findAll();
     return allCanvases.length > 0 ? allCanvases[0] : null;
   }
@@ -180,7 +170,6 @@ export class IndexedDBFlowCanvasRepository implements IFlowCanvasRepository {
     return allCanvases.slice(0, limit);
   }
 
-  // Private helper methods
 
   private async getActiveCanvasId(): Promise<string | null> {
     const db = await this.getDB();

@@ -1,8 +1,3 @@
-/**
- * CanvasName Value Object
- * Ensures canvas names follow business rules
- */
-
 export class CanvasName {
   private readonly _value: string;
   private static readonly MAX_LENGTH = 100;

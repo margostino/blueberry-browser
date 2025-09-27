@@ -1,15 +1,10 @@
-/**
- * FlowCanvas Data Transfer Object
- * Used for API/IPC communication
- */
-
 export interface FlowCanvasDTO {
   id: string;
   name: string;
   items: FlowItemDTO[];
   connections: ConnectionDTO[];
-  created: number; // timestamp
-  modified: number; // timestamp
+  created: number;
+  modified: number;
   zoom: number;
   viewport: { x: number; y: number };
   layout: 'freeform' | 'grid' | 'tree';
@@ -39,7 +34,6 @@ export interface ConnectionDTO {
   created?: number;
 }
 
-// Request/Response DTOs for specific operations
 export interface CreateCanvasRequestDTO {
   name?: string;
   layout?: 'freeform' | 'grid' | 'tree';

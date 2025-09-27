@@ -207,10 +207,8 @@ export class SecurityValidator {
 
     let sanitized = input;
 
-    // Remove script tags
     sanitized = sanitized.replace(SecurityValidator.SCRIPT_PATTERN, '');
 
-    // Remove potential XSS patterns
     sanitized = sanitized.replace(SecurityValidator.XSS_PATTERN, '');
 
     // Escape HTML entities
@@ -231,11 +229,9 @@ export class SecurityValidator {
     // Basic HTML sanitization (in production, use a library like DOMPurify)
     let sanitized = html;
 
-    // Remove script tags and event handlers
     sanitized = sanitized.replace(SecurityValidator.SCRIPT_PATTERN, '');
     sanitized = sanitized.replace(/on\w+\s*=/gi, '');
 
-    // Remove javascript: protocols
     sanitized = sanitized.replace(/javascript:/gi, '');
 
     return sanitized;

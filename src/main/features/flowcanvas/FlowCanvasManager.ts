@@ -18,7 +18,7 @@ export class FlowCanvasManager {
   private activeCanvas: FlowCanvas | null = null;
   private contextMenuHandler: FlowCanvasContextMenuHandler;
   private llmClient: LLMClient | null = null;
-  private mainWindow: any = null; // Reference to Window instance
+  private mainWindow: any = null;
   constructor() {
     this.storage = new FlowCanvasStorage();
     this.contextMenuHandler = new FlowCanvasContextMenuHandler(this);

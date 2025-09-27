@@ -1,8 +1,3 @@
-/**
- * Connection Domain Entity
- * Represents a connection between canvas items
- */
-
 export class Connection {
   readonly id: string;
   readonly from: string;

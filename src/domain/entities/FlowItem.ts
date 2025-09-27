@@ -1,8 +1,3 @@
-/**
- * FlowItem Domain Entity
- * Represents an item on the canvas
- */
-
 export class FlowItem {
   readonly id: { value: string };
   readonly type: 'note' | 'screenshot' | 'link' | 'code' | 'diagram';

@@ -107,7 +107,6 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
       to.y - arrowLength * Math.sin(angle + arrowAngle)
     );
     ctx.stroke();
-    // Display label for connections or similarity/AI info
     if (connection?.label || connection?.metadata) {
       const midX = (from.x + to.x) / 2;
       const midY = (from.y + to.y) / 2;
@@ -134,7 +133,6 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
       }
 
       if (displayText) {
-        // Calculate text metrics for background
         ctx.font = '12px sans-serif';
         const textMetrics = ctx.measureText(displayText);
         const textWidth = textMetrics.width;
@@ -157,7 +155,6 @@ export const ConnectionCanvas: React.FC<ConnectionCanvasProps> = ({
           });
         }
 
-        // Draw semi-transparent background
         ctx.fillStyle = isClickable ? 'rgba(245, 240, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)';
         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
 

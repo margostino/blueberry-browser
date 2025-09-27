@@ -1,8 +1,3 @@
-/**
- * CanvasId Value Object
- * Ensures canvas IDs are valid and provides type safety
- */
-
 export class CanvasId {
   private readonly _value: string;
 

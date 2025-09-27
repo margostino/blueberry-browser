@@ -1,8 +1,3 @@
-/**
- * FlowCanvas Domain Entity
- * Core business logic for canvas operations
- */
-
 import { CanvasId } from '../value-objects/CanvasId';
 import { CanvasName } from '../value-objects/CanvasName';
 import { FlowItem } from './FlowItem';
@@ -41,7 +36,6 @@ export class FlowCanvas {
     this._layout = params.layout || 'freeform';
   }
 
-  // Business Logic Methods
 
   addItem(item: FlowItem): void {
     if (this.hasItem(item.id)) {
@@ -57,7 +51,6 @@ export class FlowCanvas {
       throw new Error(`Item with id ${itemId} not found`);
     }
 
-    // Remove associated connections
     this._connections = this._connections.filter(
       conn => conn.from !== itemId && conn.to !== itemId
     );
@@ -76,7 +69,6 @@ export class FlowCanvas {
   }
 
   addConnection(connection: Connection): void {
-    // Validate that both items exist
     const fromExists = this._items.some(item => item.id.value === connection.from);
     const toExists = this._items.some(item => item.id.value === connection.to);
 
@@ -84,7 +76,6 @@ export class FlowCanvas {
       throw new Error('Cannot connect non-existent items');
     }
 
-    // Check for duplicate connections
     const isDuplicate = this._connections.some(
       conn => conn.from === connection.from && conn.to === connection.to
     );
@@ -132,7 +123,6 @@ export class FlowCanvas {
     this._modified = new Date();
   }
 
-  // Getters
   get id(): CanvasId { return this._id; }
   get name(): CanvasName { return this._name; }
   get items(): ReadonlyArray<FlowItem> { return this._items; }
@@ -143,7 +133,6 @@ export class FlowCanvas {
   get viewport(): Readonly<{ x: number; y: number }> { return this._viewport; }
   get layout(): 'freeform' | 'grid' | 'tree' { return this._layout; }
 
-  // Domain validation
   isValid(): boolean {
     return this._name.isValid() &&
            this._zoom >= 0.1 &&

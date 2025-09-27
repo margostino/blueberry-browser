@@ -1,12 +1,6 @@
-/**
- * FlowCanvas Validator
- * Validation logic using Zod schemas
- */
-
 import { z } from 'zod';
 import { FlowCanvasDTO, FlowItemDTO, ConnectionDTO } from '../dto/FlowCanvasDTO';
 
-// Validation schemas
 const PositionSchema = z.object({
   x: z.number(),
   y: z.number()
@@ -56,35 +50,22 @@ const FlowCanvasSchema = z.object({
 });
 
 export class FlowCanvasValidator {
-  /**
-   * Validate a complete FlowCanvas DTO
-   */
   static validateCanvas(dto: unknown): FlowCanvasDTO {
     const result = FlowCanvasSchema.parse(dto);
 
-    // Additional business rule validations
     this.validateBusinessRules(result);
 
     return result;
   }
 
-  /**
-   * Validate a FlowItem DTO
-   */
   static validateItem(dto: unknown): FlowItemDTO {
     return FlowItemSchema.parse(dto);
   }
 
-  /**
-   * Validate a Connection DTO
-   */
   static validateConnection(dto: unknown): ConnectionDTO {
     return ConnectionSchema.parse(dto);
   }
 
-  /**
-   * Safe validation that returns errors instead of throwing
-   */
   static safeValidateCanvas(dto: unknown): {
     success: boolean;
     data?: FlowCanvasDTO;
@@ -116,11 +97,7 @@ export class FlowCanvasValidator {
     };
   }
 
-  /**
-   * Validate business rules that go beyond schema validation
-   */
   private static validateBusinessRules(canvas: FlowCanvasDTO): void {
-    // Ensure all connections reference existing items
     const itemIds = new Set(canvas.items.map(item => item.id));
 
     for (const connection of canvas.connections) {
@@ -135,7 +112,6 @@ export class FlowCanvasValidator {
       }
     }
 
-    // Check for duplicate connection IDs
     const connectionIds = new Set<string>();
     for (const connection of canvas.connections) {
       if (connectionIds.has(connection.id)) {
@@ -144,7 +120,6 @@ export class FlowCanvasValidator {
       connectionIds.add(connection.id);
     }
 
-    // Check for duplicate item IDs
     const itemIdSet = new Set<string>();
     for (const item of canvas.items) {
       if (itemIdSet.has(item.id)) {
@@ -154,9 +129,6 @@ export class FlowCanvasValidator {
     }
   }
 
-  /**
-   * Extract validation errors in a user-friendly format
-   */
   static formatErrors(error: z.ZodError): string[] {
     return error.errors.map(err => {
       const path = err.path.join('.');

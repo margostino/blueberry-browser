@@ -1,9 +1,3 @@
-/**
- * IPC Channel Constants
- * Centralized definition of all IPC communication channels between main and renderer processes
- */
-
-// Tab Management
 export const TAB_CHANNELS = {
   CREATE: 'create-tab',
   CLOSE: 'close-tab',
@@ -14,7 +8,6 @@ export const TAB_CHANNELS = {
   RUN_JS: 'tab-run-js',
 } as const;
 
-// Navigation
 export const NAVIGATION_CHANNELS = {
   NAVIGATE: 'navigate-to',
   NAVIGATE_TAB: 'navigate-tab',
@@ -26,7 +19,6 @@ export const NAVIGATION_CHANNELS = {
   TAB_RELOAD: 'tab-reload',
 } as const;
 
-// Page Content
 export const PAGE_CHANNELS = {
   GET_CONTENT: 'get-page-content',
   GET_TEXT: 'get-page-text',
@@ -34,7 +26,6 @@ export const PAGE_CHANNELS = {
   TEXT_RESPONSE: 'page-text-response',
 } as const;
 
-// Sidebar
 export const SIDEBAR_CHANNELS = {
   TOGGLE: 'toggle-sidebar',
   CHAT_MESSAGE: 'sidebar-chat-message',
@@ -44,7 +35,6 @@ export const SIDEBAR_CHANNELS = {
   MESSAGES_UPDATED: 'chat-messages-updated',
 } as const;
 
-// FlowCanvas
 export const FLOWCANVAS_CHANNELS = {
   CREATE: 'flowcanvas:create',
   LOAD: 'flowcanvas:load',
@@ -58,19 +48,16 @@ export const FLOWCANVAS_CHANNELS = {
   FIND_CONNECTIONS: 'flowcanvas:find-connections',
 } as const;
 
-// UI/Theme
 export const UI_CHANNELS = {
   DARK_MODE_CHANGED: 'dark-mode-changed',
   DARK_MODE_UPDATED: 'dark-mode-updated',
   WINDOW_RESIZED: 'window-resized',
 } as const;
 
-// System
 export const SYSTEM_CHANNELS = {
   PING: 'ping',
 } as const;
 
-// Type exports for type-safe IPC communication
 export type TabChannel = typeof TAB_CHANNELS[keyof typeof TAB_CHANNELS];
 export type NavigationChannel = typeof NAVIGATION_CHANNELS[keyof typeof NAVIGATION_CHANNELS];
 export type PageChannel = typeof PAGE_CHANNELS[keyof typeof PAGE_CHANNELS];

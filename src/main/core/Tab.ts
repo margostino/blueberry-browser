@@ -72,7 +72,6 @@ export class Tab {
     return await this.webContentsView.webContents.capturePage();
   }
   async runJs(code: string): Promise<any> {
-    // Remove any leading "return " statement since it's illegal outside a function
     const cleanedCode = code.startsWith('return ') ? code.substring(7) : code;
     return await this.webContentsView.webContents.executeJavaScript(cleanedCode);
   }

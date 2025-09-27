@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-// Expose a safe API to the main process for extracting page text
 contextBridge.exposeInMainWorld('__electronAPI', {
   getPageText: () => {
     try {
@@ -15,7 +14,6 @@ contextBridge.exposeInMainWorld('__electronAPI', {
   }
 });
 
-// Listen for text extraction requests from main process
 ipcRenderer.on('get-page-text', () => {
   try {
     const text = document.documentElement?.innerText || document.body?.innerText || '';
