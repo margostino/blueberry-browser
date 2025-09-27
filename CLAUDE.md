@@ -153,3 +153,194 @@ Secure bridge between renderer and main processes:
 - AI synthesis and summarization features
 - Smart organization and clustering
 - Enhanced capture capabilities
+
+## TypeScript Coding Guidelines
+
+### Core Principles
+
+1. **Type Safety First**: Leverage TypeScript's type system fully
+   - Always define explicit types for function parameters and return values
+   - Avoid using `any` type - use `unknown` or specific types instead
+   - Use strict mode in tsconfig.json
+   - Prefer interfaces over type aliases for object shapes
+
+2. **Clean Code Practices**
+   - Single Responsibility Principle: Each function/class should do one thing well
+   - Keep functions small and focused (typically < 30 lines)
+   - Use descriptive variable and function names that explain intent
+   - Prefer immutability: use `const` by default, `readonly` for properties
+   - Avoid deep nesting (max 3 levels of indentation)
+
+3. **NO REDUNDANT COMMENTS**
+   - **NEVER add comments that state the obvious**
+   - Code should be self-documenting through clear naming
+   - Remove comments like:
+     ```typescript
+     // BAD - Redundant comments to remove:
+     // Initialize variable
+     const user = new User();
+
+     // Check if user exists
+     if (user) { ... }
+
+     // Return the result
+     return result;
+     ```
+   - Only add comments when they provide value:
+     ```typescript
+     // GOOD - Explains complex business logic:
+     // Users inactive for 90+ days require re-verification per SOC2 compliance
+     if (daysSinceLastLogin > 90) { ... }
+
+     // GOOD - Documents workaround:
+     // Workaround for Electron bug #12345 - remove after v25.0
+     setTimeout(() => window.reload(), 100);
+     ```
+
+### TypeScript Best Practices
+
+1. **Type Definitions**
+   ```typescript
+   // GOOD: Explicit, narrow types
+   interface UserCredentials {
+     readonly email: string;
+     readonly hashedPassword: string;
+   }
+
+   function authenticate(credentials: UserCredentials): Promise<AuthToken> {
+     // implementation
+   }
+
+   // BAD: Loose typing
+   function authenticate(data: any): any {
+     // implementation
+   }
+   ```
+
+2. **Error Handling**
+   ```typescript
+   // GOOD: Type-safe error handling
+   class ValidationError extends Error {
+     constructor(public readonly field: string, message: string) {
+       super(message);
+     }
+   }
+
+   function validateEmail(email: string): Result<string, ValidationError> {
+     if (!email.includes('@')) {
+       return { success: false, error: new ValidationError('email', 'Invalid format') };
+     }
+     return { success: true, data: email };
+   }
+   ```
+
+3. **Async/Await Pattern**
+   ```typescript
+   // GOOD: Clean async handling
+   async function fetchUserData(id: string): Promise<User> {
+     try {
+       const response = await api.get(`/users/${id}`);
+       return UserMapper.toDomain(response.data);
+     } catch (error) {
+       logger.error('Failed to fetch user', { id, error });
+       throw new UserNotFoundError(id);
+     }
+   }
+   ```
+
+4. **Functional Programming Patterns**
+   ```typescript
+   // GOOD: Pure functions, immutability
+   const addItem = (items: readonly Item[], newItem: Item): Item[] =>
+     [...items, newItem];
+
+   const updateItem = (items: readonly Item[], id: string, updates: Partial<Item>): Item[] =>
+     items.map(item => item.id === id ? { ...item, ...updates } : item);
+   ```
+
+5. **Domain-Driven Design**
+   ```typescript
+   // GOOD: Rich domain models with encapsulation
+   export class FlowCanvas {
+     private readonly _items: FlowItem[] = [];
+
+     constructor(
+       private readonly _id: CanvasId,
+       private readonly _name: CanvasName
+     ) {}
+
+     addItem(item: FlowItem): void {
+       if (this.hasItem(item.id)) {
+         throw new DuplicateItemError(item.id);
+       }
+       this._items.push(item);
+     }
+
+     private hasItem(id: ItemId): boolean {
+       return this._items.some(item => item.id.equals(id));
+     }
+   }
+   ```
+
+6. **Dependency Injection**
+   ```typescript
+   // GOOD: Constructor injection for testability
+   export class FlowCanvasUseCases {
+     constructor(
+       private readonly repository: IFlowCanvasRepository,
+       private readonly validator: IValidator<FlowCanvas>
+     ) {}
+
+     async createCanvas(dto: CreateCanvasDTO): Promise<FlowCanvas> {
+       const validated = await this.validator.validate(dto);
+       const canvas = FlowCanvas.create(validated);
+       await this.repository.save(canvas);
+       return canvas;
+     }
+   }
+   ```
+
+### Code Organization
+
+1. **File Structure**
+   - One class/interface per file
+   - Group related functionality in directories
+   - Use barrel exports (index.ts) for clean imports
+   - Separate concerns: domain, application, infrastructure, presentation
+
+2. **Import Order**
+   ```typescript
+   // 1. External libraries
+   import { app, BrowserWindow } from 'electron';
+   import { v4 as uuidv4 } from 'uuid';
+
+   // 2. Internal absolute imports
+   import { FlowCanvas } from '@/domain/entities/FlowCanvas';
+
+   // 3. Relative imports
+   import { CanvasMapper } from './mappers/CanvasMapper';
+   import type { CanvasDTO } from './types';
+   ```
+
+3. **Naming Conventions**
+   - PascalCase: Classes, Interfaces, Types, Enums
+   - camelCase: Variables, functions, methods
+   - UPPER_SNAKE_CASE: Constants
+   - kebab-case: File names
+   - Prefix interfaces with 'I' only for abstractions (e.g., IRepository)
+
+### Performance Guidelines
+
+1. **Memoization**: Use for expensive computations
+2. **Lazy Loading**: Load modules/components only when needed
+3. **Debouncing/Throttling**: For high-frequency events
+4. **Virtual Scrolling**: For large lists
+5. **Web Workers**: For CPU-intensive tasks in renderer process
+
+### Security Guidelines
+
+1. **Input Validation**: Always validate and sanitize user input
+2. **Context Isolation**: Use preload scripts for IPC
+3. **CSP Headers**: Implement Content Security Policy
+4. **No Direct DOM Manipulation**: Use React's virtual DOM
+5. **Secure Storage**: Encrypt sensitive data before persistence
