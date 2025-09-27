@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { FlowItem } from '../../../shared/types/flowcanvas';
 interface CanvasItemProps {
   item: FlowItem;
@@ -249,6 +249,7 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
   return (
     <div
       ref={itemRef}
+      data-item-id={item.id}
       className={`canvas-item ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isResizing ? 'resizing' : ''} ${isConnectionStart ? 'connection-start' : ''} item-type-${item.type}`}
       style={{
         transform: `translate(${item.position.x}px, ${item.position.y}px)`,

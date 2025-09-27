@@ -59,7 +59,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
               Cancel
             </button>
             <button className="btn btn-primary" onClick={handleConfirm}>
-              Analyze with This Prompt
+              Use this Prompt
             </button>
           </div>
         </div>

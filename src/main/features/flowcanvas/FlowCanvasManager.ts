@@ -233,16 +233,6 @@ export class FlowCanvasManager {
           }
 
           if (isConnected) {
-            const fromPoint = {
-              x: item1.position.x + item1.dimensions.width / 2,
-              y: item1.position.y + item1.dimensions.height / 2,
-            };
-
-            const toPoint = {
-              x: item2.position.x + item2.dimensions.width / 2,
-              y: item2.position.y + item2.dimensions.height / 2,
-            };
-
             const connection: Connection = {
               id: uuidv4(),
               from: item1.id,
@@ -251,8 +241,7 @@ export class FlowCanvasManager {
               color: mode === "llm" ? "#8b5cf6" : "#10b981", // Purple for LLM, green for similarity
               label: "", // No label on the connection line
               style: "solid",
-              fromPoint,
-              toPoint,
+              // Don't store fixed points - let ConnectionCanvas calculate dynamically
               metadata: {
                 mode,
                 similarityScore,
@@ -262,35 +251,10 @@ export class FlowCanvasManager {
 
             connections.push(connection);
             processedPairs.add(pairKey);
-
-            // Only create NOTE items for LLM mode
-            if (mode === "llm") {
-              const notePosition = {
-                x: (fromPoint.x + toPoint.x) / 2 - 150,
-                y: (fromPoint.y + toPoint.y) / 2 - 50,
-              };
-
-              const noteItem: FlowItem = {
-                id: uuidv4(),
-                type: "note",
-                content: connectionReason,
-                source: {
-                  url: "note://local",
-                  title: "Quick Note",
-                  timestamp: Date.now(),
-                },
-                position: notePosition,
-                dimensions: {
-                  width: 300,
-                  height: 250,
-                },
-                color: "#fef3c7", // Yellow color like user notes
-              };
-
-              if (this.activeCanvas) {
-                this.activeCanvas.items.push(noteItem);
-              }
-            }
+            
+            // No longer creating NOTE items for either mode
+            // Similarity shows inline text with percentage
+            // LLM shows truncated text with modal for full content
           }
         }
       }

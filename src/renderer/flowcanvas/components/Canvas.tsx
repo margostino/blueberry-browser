@@ -19,6 +19,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [tempItemPositions, setTempItemPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
   const [isCreatingConnection, setIsCreatingConnection] = useState(false);
   const [connectionStartPoint, setConnectionStartPoint] = useState<{x: number, y: number} | null>(null);
   const [mousePosition, setMousePosition] = useState<{x: number, y: number}>({ x: 0, y: 0 });
@@ -58,10 +60,15 @@ export const Canvas: React.FC<CanvasProps> = ({
   }, [canvas, onCanvasUpdate]);
   const handleItemDragStart = useCallback((item: FlowItem, e: React.MouseEvent) => {
     setIsDragging(true);
+    setDraggedItemId(item.id);
     handleDragStart(item, e, canvasRef.current);
   }, [handleDragStart]);
   const handleItemDragEnd = useCallback((item: FlowItem, position: { x: number; y: number }) => {
     setIsDragging(false);
+    setDraggedItemId(null);
+    setTempItemPositions(new Map());
+    
+    // Update only the dragged item
     const updatedItem = {
       ...item,
       position
@@ -256,6 +263,20 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (isCreatingConnection && connectionStartPoint) {
       setMousePosition({ x, y });
     }
+    
+    // Track temporary position of dragged item for connection updates
+    if (isDragging && draggedItemId) {
+      const draggedElement = document.querySelector(`[data-item-id="${draggedItemId}"]`) as HTMLElement;
+      if (draggedElement) {
+        const transform = draggedElement.style.transform;
+        const match = transform.match(/translate\(([^,]+)px,[^0-9-]*([^)]+)px\)/);
+        if (match) {
+          const newX = parseFloat(match[1]);
+          const newY = parseFloat(match[2]);
+          setTempItemPositions(new Map([[draggedItemId, { x: newX, y: newY }]]));
+        }
+      }
+    }
     if (isSelecting && selectionBox) {
       setSelectionBox({ ...selectionBox, end: { x, y } });
       const minX = Math.min(selectionBox.start.x, x);
@@ -274,7 +295,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       });
       setSelectedItemIds(newSelectedIds);
     }
-  }, [isCreatingConnection, connectionStartPoint, isSelecting, selectionBox, canvas.items]);
+  }, [isCreatingConnection, connectionStartPoint, isSelecting, selectionBox, canvas.items, isDragging, draggedItemId]);
   return (
     <div
       ref={canvasRef}
@@ -404,6 +425,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           isCreatingConnection={isCreatingConnection}
           connectionStartPoint={connectionStartPoint}
           mousePosition={mousePosition}
+          tempItemPositions={tempItemPositions}
         />
         {canvas.items.length === 0 && (
           <div style={{
