@@ -1,6 +1,10 @@
 # FlowCanvas: Visual Knowledge Workspace for Web Browsing
 
-## 🎯 The Problem We Solve
+<div align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/ro3El9izLP8" title="FlowCanvas Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+## 🎯 The Problem FlowCanvas solves
 
 Every day, knowledge workers lose critical information in browser tab chaos:
 
